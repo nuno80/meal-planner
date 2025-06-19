@@ -1,10 +1,13 @@
-// src/app/layout.tsx
+// src/app/layout.tsx v.1.1
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { ClerkProvider } from "@clerk/nextjs";
 
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/toaster";
+
+// <-- 1. NUOVO IMPORT
 
 import "./globals.css";
 
@@ -19,8 +22,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "my-new-app", // O il titolo che preferisci
-  description: "my-new-app to solve problems", // O la descrizione che preferisci
+  title: "my-new-app",
+  description: "my-new-app to solve problems",
 };
 
 export default function RootLayout({
@@ -41,6 +44,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             {children}
+            <Toaster /> {/* <-- 2. TOASTER AGGIUNTO QUI */}
           </ThemeProvider>
         </body>
       </html>

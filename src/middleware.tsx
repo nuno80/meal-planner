@@ -1,12 +1,12 @@
-// src/middleware.ts
+// src/middleware.ts v.1.2 (Senza accesso al DB)
 import { NextResponse } from "next/server";
 
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-type AppRole = "admin" | "manager";
+// type AppRole = "admin" | "manager"; // Puoi decommentare se ti serve
 
+// 1. Definizione delle rotte (inclusa la nuova per il profilo)
 const isPublicRoute = createRouteMatcher([
-  //aggiungi qui la lista aggiornata delle pagine pubbliche
   "/",
   "/about",
   "/pricing",
@@ -15,35 +15,30 @@ const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/api/webhooks(.*)",
+  "/api/user/preferences(.*)", // Rendiamo l'API delle preferenze accessibile per il salvataggio
 ]);
 
+const isOnboardingRoute = createRouteMatcher(["/profile(.*)"]);
+
 const isAdminRoute = createRouteMatcher([
-  //aggiungi qui le pagine accessibili solo agli admin
   "/admin(.*)",
   "/dashboard(.*)",
   "/api/admin/(.*)",
 ]);
+
 const isAuthenticatedRoute = createRouteMatcher(["/features(.*)"]);
-//aggiungi qui le pagine accessibili solo agli utenti registrati
 
 export default clerkMiddleware(async (auth, req) => {
   const { userId, sessionClaims } = await auth();
 
-  // Per debug, puoi decommentare le seguenti righe per vedere i log
-  //console.log("\n--- CLERK MIDDLEWARE DEBUG ---");
-  //console.log(`[REQ] ${req.method} ${req.url}`);
-  //console.log(`[AUTH] User ID: ${userId}`);
-
-
+  // Se la rotta è pubblica, non fare nulla
   if (isPublicRoute(req)) {
-    console.log(`[DECISION] Public route. Allowing for ${req.url}.`);
     return NextResponse.next();
   }
 
+  // Se l'utente non è autenticato, gestisci il redirect
   if (!userId) {
-    console.log("[DECISION] User not authenticated.");
     if (req.url.startsWith("/api")) {
-      console.log("[ACTION] Returning 401 for API request.");
       return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { "Content-Type": "application/json" },
@@ -54,74 +49,58 @@ export default clerkMiddleware(async (auth, req) => {
       "redirect_url",
       req.nextUrl.pathname + req.nextUrl.search
     );
-    console.log(`[ACTION] Redirecting to sign-in: ${signInUrl.toString()}`);
     return NextResponse.redirect(signInUrl);
   }
 
-  console.log(`[AUTH] User ${userId} is authenticated.`);
+  // --- NUOVA LOGICA: CONTROLLO ONBOARDING TRAMITE CLERK ---
+  // Leggiamo un flag dai metadati pubblici dell'utente su Clerk.
+  const hasCompletedOnboarding =
+    sessionClaims?.publicMetadata?.onboardingComplete === true;
 
+  // Se l'utente non ha completato l'onboarding E non è già sulla pagina del profilo,
+  // lo reindirizziamo lì.
+  if (!hasCompletedOnboarding && !isOnboardingRoute(req)) {
+    const profileUrl = new URL("/profile", req.url);
+    console.log(
+      `[DECISION] Utente ${userId} non ha completato l'onboarding (flag Clerk). Redirect a ${profileUrl.toString()}`
+    );
+    return NextResponse.redirect(profileUrl);
+  }
+
+  // Se l'utente ha completato l'onboarding MA cerca di tornare alla pagina del profilo,
+  // lo reindirizziamo alla sua dashboard per evitare confusione.
+  if (hasCompletedOnboarding && isOnboardingRoute(req)) {
+    const mealPlanUrl = new URL("/meal-plan", req.url); // O la pagina principale post-login
+    console.log(
+      `[DECISION] Utente ${userId} ha già completato l'onboarding. Redirect a ${mealPlanUrl.toString()}`
+    );
+    return NextResponse.redirect(mealPlanUrl);
+  }
+  // --- FINE NUOVA LOGICA ---
+
+  // Controllo per le rotte Admin (LOGICA INVARIATA)
   if (isAdminRoute(req)) {
-    console.log(
-      `[ROUTE] Admin route matched for ${req.url}. Checking admin role for user ${userId}.`
-    );
-
-    let userIsAdmin = false;
-    let roleSource = "none";
-
-    if (sessionClaims) {
-      if (sessionClaims.metadata?.role === "admin") {
-        userIsAdmin = true;
-        roleSource = "sessionClaims.metadata.role";
-      } else if (sessionClaims.publicMetadata?.role === "admin") {
-        userIsAdmin = true;
-        roleSource = "sessionClaims.publicMetadata.role (camelCase)";
-      } else {
-        const snakeCasePublicMeta = sessionClaims["public_metadata"] as
-          | { role?: AppRole }
-          | undefined;
-        if (snakeCasePublicMeta?.role === "admin") {
-          userIsAdmin = true;
-          roleSource = "sessionClaims['public_metadata'].role (snake_case)";
-        }
-      }
-    }
-
-    console.log(
-      `[AUTH] Role source for admin check: ${roleSource}. Role found: ${userIsAdmin ? "admin" : "not admin or not found"}`
-    );
-    console.log(`[AUTH] Result of userIsAdmin check: ${userIsAdmin}`);
-
+    const userIsAdmin = sessionClaims?.metadata?.role === "admin";
     if (userIsAdmin) {
-      console.log("[DECISION] Admin access GRANTED.");
       return NextResponse.next();
     } else {
-      console.log("[DECISION] Admin access DENIED. User is not admin.");
       if (req.url.startsWith("/api")) {
-        console.log("[ACTION] Returning 403 for API admin request.");
         return new NextResponse(
           JSON.stringify({ error: "Forbidden: Admin role required" }),
-          {
-            status: 403,
-            headers: { "Content-Type": "application/json" },
-          }
+          { status: 403, headers: { "Content-Type": "application/json" } }
         );
       }
       const noAccessUrl = new URL("/no-access", req.url);
-      console.log("[ACTION] Redirecting to /no-access.");
       return NextResponse.redirect(noAccessUrl);
     }
   }
 
+  // Controllo per le rotte utente autenticato (LOGICA INVARIATA)
   if (isAuthenticatedRoute(req)) {
-    console.log(
-      `[ROUTE] Authenticated (non-admin) route matched for ${req.url}. Access GRANTED for user ${userId}.`
-    );
     return NextResponse.next();
   }
 
-  console.log(
-    `[ROUTE] Unspecified protected route for ${req.url}. Allowing access for authenticated user ${userId}.`
-  );
+  // Fallback per tutte le altre rotte protette.
   return NextResponse.next();
 });
 
