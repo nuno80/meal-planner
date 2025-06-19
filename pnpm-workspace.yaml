@@ -1,3 +1,6 @@
+packages:
+  - "packages/*"  # Oppure "apps/*", "src/*", ecc. a seconda della tua struttura
+
 ignoredBuiltDependencies:
   - '@clerk/shared'
   - sharp

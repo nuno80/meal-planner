@@ -76,7 +76,7 @@ export function Navbar() {
             >
               About
             </Link>
-            */}
+
             <SignedIn>
               {" "}
               {/* Mostra questi link solo se loggato */}

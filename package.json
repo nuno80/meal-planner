@@ -15,6 +15,9 @@
     "db:reset": "pnpm exec tsx src/lib/db/reset.ts",
     "db:apply-changes": "pnpm exec tsx src/lib/db/apply-changes.ts"
   },
+  
+  "workspaces": ["packages/*"],  
+  
   "dependencies": {
     "@clerk/nextjs": "^6.12.12",
     "@radix-ui/react-dropdown-menu": "^2.1.6",
