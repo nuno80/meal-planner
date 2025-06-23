@@ -2,7 +2,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { Activity, BarChart, DollarSign, Users } from "lucide-react";
 
 // Opzionale: per salutare l'admin
-import { Navbar } from "@/components/navbar";
+import Navbar from "@/components/navbar";
 
 // Icone per un look migliore
 

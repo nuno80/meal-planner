@@ -1,17 +1,14 @@
-// src/components/features/profile/PreferencesForm.tsx v.1.1
-// Form interattivo per raccogliere le preferenze dell'utente.
+// src/components/features/profile/PreferencesForm.tsx v.2.2 (Corretto)
 
 "use client";
 
-import type { Route } from "next";
-// MODIFICA: Import per type-safe routing
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 
-// Importiamo i componenti UI da shadcn
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -31,23 +28,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-// <-- QUESTA È LA RIGA CORRETTA
 import {
   UserPreferencesPayload,
   userPreferencesSchema,
 } from "@/lib/validators/preferences";
 
-// src/components/features/profile/PreferencesForm.tsx v.1.1
-// Form interattivo per raccogliere le preferenze dell'utente.
-
-// src/components/features/profile/PreferencesForm.tsx v.1.1
-// Form interattivo per raccogliere le preferenze dell'utente.
-
-// src/components/features/profile/PreferencesForm.tsx v.1.1
-// Form interattivo per raccogliere le preferenze dell'utente.
-
-// src/components/features/profile/PreferencesForm.tsx v.1.1
-// Form interattivo per raccogliere le preferenze dell'utente.
+// src/components/features/profile/PreferencesForm.tsx v.2.2 (Corretto)
 
 const ALLERGENS = [
   { id: 1, name: "Glutine" },
@@ -60,7 +46,8 @@ const ALLERGENS = [
 export function PreferencesForm() {
   const router = useRouter();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const form = useForm<UserPreferencesPayload>({
     resolver: zodResolver(userPreferencesSchema),
@@ -68,44 +55,60 @@ export function PreferencesForm() {
       calorieTarget: 2000,
       distribution: { breakfast: 30, lunch: 40, dinner: 30 },
       dietaryPreference: "NONE",
-      difficultyLevel: "MEDIUM",
+      difficultyLevel: "ANY",
       allergenIds: [],
       dislikedIngredients: [],
     },
   });
 
+  useEffect(() => {
+    async function fetchPreferences() {
+      try {
+        const response = await fetch("/api/user/preferences");
+        if (response.ok) {
+          const data: UserPreferencesPayload = await response.json();
+          form.reset(data);
+        }
+      } catch (error) {
+        console.error("Errore durante il caricamento delle preferenze:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchPreferences();
+  }, [form]);
+
   async function onSubmit(data: UserPreferencesPayload) {
-    setIsLoading(true);
+    setIsSubmitting(true);
     try {
       const response = await fetch("/api/user/preferences", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-
-      if (!response.ok) {
+      if (!response.ok)
         throw new Error("Errore del server durante il salvataggio.");
-      }
-
       toast({
         title: "Preferenze salvate!",
-        description: "Stiamo per preparare la tua area personale.",
+        description: "Ora puoi generare il tuo piano alimentare.",
       });
-
-      router.refresh();
-      // MODIFICA: Aggiunto type casting per risolvere l'errore del router
-      router.push("/meal-plan" as Route);
     } catch (error) {
-      console.error("Errore nel salvataggio delle preferenze:", error);
       toast({
-        title: "Oh no! Qualcosa è andato storto.",
-        description:
-          "Non è stato possibile salvare le tue preferenze. Riprova.",
+        title: "Errore",
+        description: (error as Error).message,
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="text-brand-accent h-8 w-8 animate-spin" />
+      </div>
+    );
   }
 
   return (
@@ -142,12 +145,11 @@ export function PreferencesForm() {
         <CardContent className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div>
             <Label>Regime alimentare</Label>
-            {/* MODIFICA: Aggiunto tipo esplicito a 'value' */}
             <Select
-              onValueChange={(value: string) =>
+              onValueChange={(value) =>
                 form.setValue("dietaryPreference", value as any)
               }
-              defaultValue={form.getValues("dietaryPreference")}
+              value={form.watch("dietaryPreference")}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -162,17 +164,17 @@ export function PreferencesForm() {
           </div>
           <div>
             <Label>Livello di difficoltà</Label>
-            {/* MODIFICA: Aggiunto tipo esplicito a 'value' */}
             <Select
-              onValueChange={(value: string) =>
+              onValueChange={(value) =>
                 form.setValue("difficultyLevel", value as any)
               }
-              defaultValue={form.getValues("difficultyLevel")}
+              value={form.watch("difficultyLevel")}
             >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="ANY">Qualsiasi</SelectItem>
                 <SelectItem value="EASY">Facile</SelectItem>
                 <SelectItem value="MEDIUM">Medio</SelectItem>
                 <SelectItem value="HARD">Difficile</SelectItem>
@@ -182,6 +184,7 @@ export function PreferencesForm() {
         </CardContent>
       </Card>
 
+      {/* Blocco 1: MODIFICA CORRETTA del tag di chiusura */}
       <Card>
         <CardHeader>
           <CardTitle>Allergeni e Ingredienti da Escludere</CardTitle>
@@ -194,8 +197,8 @@ export function PreferencesForm() {
                 <div key={allergen.id} className="flex items-center space-x-2">
                   <Checkbox
                     id={`allergen-${allergen.id}`}
-                    // MODIFICA: Aggiunto tipo esplicito a 'checked'
-                    onCheckedChange={(checked: boolean) => {
+                    checked={form.watch("allergenIds").includes(allergen.id)}
+                    onCheckedChange={(checked) => {
                       const currentIds = form.getValues("allergenIds");
                       if (checked) {
                         form.setValue("allergenIds", [
@@ -225,18 +228,32 @@ export function PreferencesForm() {
               id="dislikedIngredients"
               placeholder="Es. funghi, cipolle, olive"
               {...form.register("dislikedIngredients", {
-                setValueAs: (value) =>
-                  value
-                    ? value.split(",").map((item: string) => item.trim())
-                    : [],
+                setValueAs: (value) => {
+                  if (typeof value === "string")
+                    return value
+                      ? value.split(",").map((item) => item.trim())
+                      : [];
+                  return value;
+                },
+                onChange: (e) => {
+                  form.setValue(
+                    "dislikedIngredients",
+                    e.target.value.split(",").map((s: string) => s.trim())
+                  );
+                },
               })}
+              defaultValue={
+                Array.isArray(form.getValues("dislikedIngredients"))
+                  ? form.getValues("dislikedIngredients").join(", ")
+                  : ""
+              }
             />
           </div>
         </CardContent>
       </Card>
 
-      <Button type="submit" disabled={isLoading} className="w-full">
-        {isLoading ? "Salvataggio..." : "Salva e Inizia"}
+      <Button type="submit" disabled={isSubmitting} className="w-full">
+        {isSubmitting ? "Salvataggio..." : "Salva Preferenze"}
       </Button>
     </form>
   );

@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { auth } from "@clerk/nextjs/server";
 
-import { Navbar } from "@/components/navbar";
+import Navbar from "@/components/navbar";
 
 // Rendi la funzione componente async
 export default async function NoAccessPage() {

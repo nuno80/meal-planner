@@ -1,0 +1,65 @@
+{
+    "summary": "Implementata la gestione utenti, le preferenze, l'import/visualizzazione ricette e il generatore di piani alimentari.",
+    "features": {
+      "user_authentication_preferences": {
+        "purpose": "Gestire il profilo utente e le sue preferenze per la generazione dei piani.",
+        "flow": [
+          "1. L'utente si autentica tramite Clerk.",
+          "2. Accede alla pagina `/profile` per impostare o modificare le sue preferenze (calorie, dieta, difficoltà, allergeni).",
+          "3. La pagina `/profile` usa un Client Component che carica le preferenze esistenti via `GET /api/user/preferences` per pre-compilare il form.",
+          "4. Al salvataggio, il form invia i dati con `PUT` a `/api/user/preferences`.",
+          "5. L'API valida i dati con Zod e li salva nel DB (logica UPSERT), assicurandosi che il record utente esista nella tabella `users`."
+        ]
+      },
+      "recipe_management": {
+        "purpose": "Integrare e visualizzare il catalogo di ricette esistente.",
+        "flow": [
+          "1. Uno script di seeding (`db:seed`) importa le ricette da un DB esterno nel DB dell'app.",
+          "2. La pagina `/recipes` (Server Component) legge tutte le ricette e le mostra in una galleria.",
+          "3. La pagina dinamica `/recipes/[recipeId]` (Server Component) legge e mostra i dettagli di una singola ricetta."
+        ]
+      },
+      "meal_plan_generation": {
+        "purpose": "Generare un piano alimentare settimanale personalizzato per l'utente.",
+        "flow": [
+          "1. L'utente va sulla pagina `/meal-plan` e clicca 'Genera Nuovo Piano'.",
+          "2. Il Client Component `MealPlanInterface` invia una richiesta `POST` a `/api/meal-plan/generate`.",
+          "3. L'API recupera le preferenze salvate dell'utente autenticato dal DB.",
+          "4. L'API passa le preferenze al servizio `meal-plan-generator.ts`.",
+          "5. Il servizio esegue l'algoritmo: pre-filtra le ricette idonee, poi cicla per 7 giorni cercando il miglior abbinamento per ogni pasto (colazione, pranzo, cena) in base alle calorie target e senza ripetizioni.",
+          "6. Il servizio restituisce il piano generato all'API, che lo inoltra al frontend.",
+          "7. Il frontend visualizza il piano settimanale in una griglia, mostrando i pasti per ogni giorno."
+        ]
+      }
+    },
+    "api_calls": [
+      {
+        "endpoint": "GET /api/user/preferences",
+        "description": "Recupera le preferenze salvate per l'utente autenticato. Usato dal form del profilo per il pre-compilamento.",
+        "security": "Protetto da `clerkMiddleware`."
+      },
+      {
+        "endpoint": "PUT /api/user/preferences",
+        "description": "Crea/aggiorna le preferenze dell'utente. Prima si assicura che l'utente esista nel DB locale (creandolo se necessario), poi salva le preferenze.",
+        "security": "Protetto da `clerkMiddleware`. Valida il payload con Zod."
+      },
+      {
+        "endpoint": "POST /api/meal-plan/generate",
+        "description": "Innesca la generazione di un nuovo piano alimentare basato sulle preferenze salvate dell'utente.",
+        "security": "Protetto da `clerkMiddleware`."
+      }
+    ],
+    "main_functions": [
+      {
+        "name": "clerkMiddleware",
+        "location": "src/middleware.ts",
+        "description": "Protegge le rotte non pubbliche e gestisce i permessi per le rotte admin."
+      },
+      {
+        "name": "generateMealPlan",
+        "location": "src/lib/meal-plan-generator.ts",
+        "description": "Cuore dell'algoritmo di generazione. Prende le preferenze e restituisce un oggetto piano alimentare."
+      }
+    ],
+    "architecture_summary": "L'architettura attuale si basa su Next.js App Router. Clerk gestisce l'autenticazione. Il database è SQLite gestito con `better-sqlite3`. Le interazioni con il backend avvengono tramite API Routes che a loro volta possono chiamare servizi di logica di business (es. `meal-plan-generator`)."
+  }

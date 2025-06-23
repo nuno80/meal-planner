@@ -1,6 +1,6 @@
 import { Check } from "lucide-react";
 
-import { Navbar } from "@/components/navbar";
+import Navbar from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 
 export default function PricingPage() {

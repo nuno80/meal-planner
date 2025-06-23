@@ -1,0 +1,87 @@
+[
+    {
+      "id": "SETUP",
+      "title": "1. Setup del Progetto e Fondamenta",
+      "status": "completed",
+      "subtasks": [
+        { "id": "SETUP_01", "title": "Inizializzare progetto Next.js", "status": "completed" },
+        { "id": "SETUP_02", "title": "Installare dipendenze principali", "status": "completed" },
+        { "id": "SETUP_03", "title": "Configurare shadcn/ui", "status": "completed" },
+        { "id": "SETUP_04", "title": "Configurare Database (better-sqlite3)", "status": "completed" },
+        { "id": "SETUP_05", "title": "Configurare Clerk", "status": "completed" },
+        { "id": "SETUP_06", "title": "Configurare internazionalizzazione (i18n)", "status": "pending" },
+        { "id": "SETUP_07", "title": "Creare la struttura delle directory", "status": "completed" }
+      ]
+    },
+    {
+      "id": "AUTH_PROFILE",
+      "title": "2. Autenticazione e Profilo Utente",
+      "status": "completed",
+      "subtasks": [
+        { "id": "AUTH_01", "title": "Definire Schema DB Utente/Preferenze", "status": "completed" },
+        { "id": "AUTH_02", "title": "Eseguire la migrazione DB", "status": "completed" },
+        { "id": "AUTH_03", "title": "Implementare Webhook Clerk (Sostituito)", "status": "completed" },
+        { "id": "AUTH_04", "title": "Creare API per le Preferenze Utente", "status": "completed" },
+        { "id": "AUTH_05", "title": "Creare Zod Validator per le Preferenze", "status": "completed" },
+        { "id": "AUTH_06", "title": "Implementare Middleware Semplificato", "status": "completed" },
+        { "id": "AUTH_07", "title": "Sviluppare UI Form Profilo", "status": "completed" },
+        { "id": "AUTH_08", "title": "Collegare Form all'API", "status": "completed" }
+      ]
+    },
+    {
+      "id": "RECIPE_SYSTEM",
+      "title": "3. Sistema di Gestione Ricette (Base)",
+      "status": "completed",
+      "subtasks": [
+        { "id": "RECIPE_01", "title": "Adattare Schema DB per Ricette Esistenti", "status": "completed" },
+        { "id": "RECIPE_02", "title": "Eseguire migrazione DB per le ricette", "status": "completed" },
+        { "id": "RECIPE_03", "title": "Creare script di Seed per importazione", "status": "completed" },
+        { "id": "RECIPE_04", "title": "Creare pagina di visualizzazione ricetta singola", "status": "completed" },
+        { "id": "RECIPE_05", "title": "Creare pagina di elenco/ricerca ricette", "status": "completed" }
+      ]
+    },
+    {
+      "id": "MEAL_PLAN_GENERATOR",
+      "title": "4. Generatore Intelligente di Piani Alimentari",
+      "description": "Implementazione della Feature 2: il cuore dell'applicazione, l'algoritmo di generazione dei piani settimanali.",
+      "status": "completed",
+      "subtasks": [
+        {
+          "id": "GEN_01",
+          "title": "Sviluppare il servizio dell'algoritmo",
+          "details": "Creato `src/lib/meal-plan-generator.ts` con la logica di generazione.",
+          "status": "completed"
+        },
+        {
+          "id": "GEN_02",
+          "title": "Creare API per la generazione",
+          "details": "Implementato l'endpoint `POST /api/meal-plan/generate` che invoca il servizio.",
+          "status": "completed"
+        },
+        {
+          "id": "GEN_03",
+          "title": "Implementare Rate Limiting",
+          "status": "pending"
+        },
+        {
+          "id": "GEN_04",
+          "title": "Sviluppare UI della pagina Piano Alimentare",
+          "details": "Creata la pagina `/meal-plan` con il componente Client `MealPlanInterface`.",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "id": "CUSTOMIZATION_SHOPPING",
+      "title": "5. Customizzazione Piano e Lista della Spesa",
+      "description": "Implementazione delle feature che permettono all'utente di modificare il piano generato e di creare una lista della spesa aggregata.",
+      "status": "pending",
+      "subtasks": [
+        { "id": "CUST_01", "title": "API per sostituire un pasto", "status": "pending" },
+        { "id": "CUST_02", "title": "UI per la sostituzione del pasto", "status": "pending" },
+        { "id": "SHOP_01", "title": "Sviluppare il servizio di aggregazione ingredienti", "status": "pending" },
+        { "id": "SHOP_02", "title": "Creare API per la Lista della Spesa", "status": "pending" },
+        { "id": "SHOP_03", "title": "Sviluppare UI Lista della Spesa", "status": "pending" }
+      ]
+    }
+  ]

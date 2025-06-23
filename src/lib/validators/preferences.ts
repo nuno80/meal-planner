@@ -1,14 +1,12 @@
-// src/lib/validators/preferences.ts v.1.1
-// Schema di validazione Zod per i dati delle preferenze utente.
+// src/lib/validators/preferences.ts v.1.2
+// Schema aggiornato per includere 'ANY' come livello di difficoltà.
 import { z } from "zod";
 
-// 1. Schema per la distribuzione dei pasti
 const distributionSchema = z
   .object({
     breakfast: z.number().int().min(0).max(100),
     lunch: z.number().int().min(0).max(100),
     dinner: z.number().int().min(0).max(100),
-    // MODIFICA: Aggiunto il tipo esplicito per il parametro 'data' per risolvere l'errore 'implicitly has an any type'
   })
   .refine(
     (data: { breakfast: number; lunch: number; dinner: number }) =>
@@ -20,7 +18,6 @@ const distributionSchema = z
     }
   );
 
-// 2. Schema principale per le preferenze dell'utente
 export const userPreferencesSchema = z.object({
   calorieTarget: z.coerce
     .number()
@@ -28,10 +25,10 @@ export const userPreferencesSchema = z.object({
     .positive("L'obiettivo calorico deve essere un numero positivo."),
   distribution: distributionSchema,
   dietaryPreference: z.enum(["NONE", "VEGETARIAN", "VEGAN", "PESCATARIAN"]),
-  difficultyLevel: z.enum(["EASY", "MEDIUM", "HARD"]),
+  // MODIFICA: Aggiungiamo 'ANY' alla lista e lo impostiamo come default.
+  difficultyLevel: z.enum(["ANY", "EASY", "MEDIUM", "HARD"]),
   allergenIds: z.array(z.number().int()),
   dislikedIngredients: z.array(z.string()),
 });
 
-// 3. Tipo TypeScript inferito dallo schema
 export type UserPreferencesPayload = z.infer<typeof userPreferencesSchema>;
