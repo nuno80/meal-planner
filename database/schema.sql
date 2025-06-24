@@ -1,5 +1,5 @@
--- database/schema.sql v.1.2
--- Schema aggiornato con nuovo default per difficulty_level.
+-- database/schema.sql v.1.3
+-- Aggiunte colonne di metadati alla tabella meal_plans per lo storico.
 
 CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY NOT NULL,
@@ -8,14 +8,13 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
--- MODIFICA: Aggiornato il valore di default per difficulty_level
 CREATE TABLE IF NOT EXISTS user_preferences (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id TEXT UNIQUE NOT NULL,
     calorie_target INTEGER DEFAULT 2000 NOT NULL,
     distribution TEXT NOT NULL,
     dietary_preference TEXT DEFAULT 'NONE' NOT NULL,
-    difficulty_level TEXT DEFAULT 'ANY' NOT NULL, -- <-- Valore di default cambiato
+    difficulty_level TEXT DEFAULT 'ANY' NOT NULL,
     disliked_ingredients TEXT DEFAULT '[]' NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -58,8 +57,13 @@ CREATE TABLE IF NOT EXISTS meal_plans (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    -- NUOVE COLONNE PER LO STORICO --
+    total_calories_avg REAL, -- Media calorica giornaliera del piano
+    dietary_preference_snapshot TEXT, -- Es. 'VEGETARIAN', 'NONE'
+    difficulty_level_snapshot TEXT, -- Es. 'ANY', 'MEDIUM'
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
 CREATE TABLE IF NOT EXISTS meal_plan_days (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     meal_plan_id INTEGER NOT NULL,

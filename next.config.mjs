@@ -1,4 +1,4 @@
-// next.config.mjs
+// next.config.mjs v.1.1 (Integrato)
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -7,28 +7,36 @@ const __dirname = path.dirname(__filename);
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // --- NUOVA SEZIONE PER LE IMMAGINI ---
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "www.giallozafferano.it",
+        port: "",
+        pathname: "/images/**",
+      },
+    ],
+  },
+  // --- FINE NUOVA SEZIONE ---
+
   experimental: {
     typedRoutes: true,
   },
   allowedDevOrigins: ["*"],
   webpack: (config, { isServer }) => {
-    // Imposta gli alias una volta, applicabile sia al client che al server
     config.resolve.alias = {
-      ...config.resolve.alias, // Mantiene qualsiasi alias preesistente (importante!)
-      "@": path.resolve(__dirname, "src"), // Definisce che '@/' punta a 'src/'
+      ...config.resolve.alias,
+      "@": path.resolve(__dirname, "src"),
     };
 
-    // Configurazioni specifiche per il server (come externals per better-sqlite3)
     if (isServer) {
       config.externals = [
-        ...(config.externals || []), // Mantiene qualsiasi externals preesistente
+        ...(config.externals || []),
         {
           "better-sqlite3": "commonjs better-sqlite3",
         },
       ];
-      // L'alias specifico 'better-sqlite3': 'better-sqlite3' non è solitamente necessario qui
-      // se l'obiettivo è solo usare il pacchetto da node_modules.
-      // La parte 'externals' è quella che gestisce come better-sqlite3 viene pacchettizzato (o non pacchettizzato) per il server.
     }
 
     return config;

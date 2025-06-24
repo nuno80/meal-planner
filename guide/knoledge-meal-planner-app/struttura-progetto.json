@@ -1,49 +1,58 @@
 {
-"src": {
-"app": {
-"api": {
-"webhooks": {
-"clerk": { "route.ts": "Endpoint per ricevere eventi da Clerk." }
-},
-"user": {
-"preferences": { "route.ts": "API per leggere e scrivere le preferenze utente." }
-},
-"meal-plan": {
-"generate": {
-"route.ts": "API per innescare la generazione di un nuovo piano alimentare."
-}
-}
-},
-"profile": { "page.tsx": "Pagina per la gestione delle preferenze utente." },
-"recipes": {
-"page.tsx": "Pagina galleria che mostra tutte le ricette.",
-"[recipeId]": {
-"page.tsx": "Pagina di dettaglio per una singola ricetta."
-}
-},
-"meal-plan": {
-"page.tsx": "Pagina principale per la generazione e visualizzazione dei piani alimentari."
-}
-},
-"components": {
-"features": {
-"profile": { "PreferencesForm.tsx": "Componente Client per il form delle preferenze." },
-"recipes": { "RecipeCard.tsx": "Componente per la card di una singola ricetta." },
-"meal-plan": {
-"MealPlanInterface.tsx": "Componente Client che gestisce la logica di generazione e visualizzazione del piano."
-}
-},
-"ui": { "NOTE": "Contiene componenti generati da shadcn/ui." }
-},
-"lib": {
-"db": { "seed.ts": "Script di popolamento del database." },
-"validators": { "preferences.ts": "Schema Zod per la validazione delle preferenze." },
-"meal-plan-generator.ts": "Servizio contenente l'algoritmo di generazione del piano alimentare."
-},
-"types": {
-"clerk-webhooks.d.ts": "Tipi per i webhook di Clerk.",
-"globals.d.ts": "Tipi globali e estensioni per Clerk."
-},
-"middleware.ts": "Gestisce l'autenticazione e la protezione delle rotte."
-}
-}
+    "src": {
+      "app": {
+        "api": {
+          "webhooks": {
+            "clerk": { "route.ts": "Endpoint per ricevere eventi da Clerk." }
+          },
+          "user": {
+            "preferences": { "route.ts": "API per leggere e scrivere le preferenze utente." }
+          },
+          "meal-plan": {
+            "generate": {
+              "route.ts": "API per innescare la generazione di un nuovo piano alimentare."
+            },
+            "meal": {
+              "[mealId]": {
+                "route.ts": "API per modificare (PATCH) un singolo pasto in un piano."
+              }
+            }
+          }
+        },
+        "profile": { "page.tsx": "Pagina per la gestione delle preferenze utente." },
+        "recipes": {
+          "page.tsx": "Pagina galleria che mostra tutte le ricette.",
+          "[recipeId]": {
+            "page.tsx": "Pagina di dettaglio per una singola ricetta."
+          }
+        },
+        "meal-plan": {
+          "page.tsx": "Pagina per avviare la generazione di un nuovo piano."
+        },
+        "user-dashboard": {
+          "page.tsx": "Pagina 'Mio Piano' che carica e visualizza l'ultimo piano generato."
+        }
+      },
+      "components": {
+        "features": {
+          "profile": { "PreferencesForm.tsx": "Componente Client per il form delle preferenze." },
+          "recipes": { "RecipeCard.tsx": "Componente per la card di una singola ricetta." },
+          "meal-plan": {
+            "MealPlanInterface.tsx": "Componente Client per la pagina di generazione del piano.",
+            "MealPlanDisplay.tsx": "Componente Client per visualizzare un piano esistente e gestirne le modifiche."
+          }
+        },
+        "ui": { "NOTE": "Contiene componenti generati da shadcn/ui." }
+      },
+      "lib": {
+        "db": { "seed.ts": "Script di popolamento del database." },
+        "validators": { "preferences.ts": "Schema Zod per la validazione delle preferenze." },
+        "meal-plan-generator.ts": "Servizio contenente l'algoritmo di generazione del piano."
+      },
+      "types": {
+        "clerk-webhooks.d.ts": "Tipi per i webhook di Clerk.",
+        "globals.d.ts": "Tipi globali e estensioni per Clerk."
+      },
+      "middleware.ts": "Gestisce l'autenticazione e la protezione delle rotte."
+    }
+  }

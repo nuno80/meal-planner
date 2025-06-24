@@ -1,4 +1,4 @@
-// src/components/navbar.tsx v.1.1
+// src/components/navbar.tsx v.1.2 (Correzione Idratazione)
 
 "use client";
 
@@ -19,14 +19,21 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
 import { useMobile } from "@/hooks/use-mobile";
 
-// src/components/navbar.tsx v.1.1
+// src/components/navbar.tsx v.1.2 (Correzione Idratazione)
 
 export default function Navbar() {
-  // MODIFICA: Aggiunto export default per coerenza
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isMobile = useMobile();
   const { sessionClaims } = useAuth();
   const isAdmin = sessionClaims?.metadata?.role === "admin";
+
+  // --- NUOVO BLOCCO: Soluzione per l'errore di idratazione ---
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+  // --- FINE NUOVO BLOCCO ---
 
   useEffect(() => {
     if (!isMobile) {
@@ -38,17 +45,22 @@ export default function Navbar() {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  // Se il componente non è ancora "montato" sul client, non renderizziamo nulla
+  // o un placeholder per evitare il mismatch.
+  if (!isMounted) {
+    return null; // O un layout scheletro della navbar
+  }
+
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-16 w-full items-center justify-between px-6 md:px-8">
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2 font-bold">
-            <span className="text-xl">Vibe Planner</span>{" "}
-            {/* Nome aggiornato */}
+            <span className="text-xl">Vibe Planner</span>
           </Link>
         </div>
 
-        {/* 1. Desktop Navigation - AGGIORNATO */}
+        {/* Desktop Navigation */}
         <div className="hidden md:flex md:items-center md:gap-6">
           <div className="flex items-center gap-4">
             <ModeToggle />
@@ -84,14 +96,12 @@ export default function Navbar() {
               >
                 Mio Piano
               </Link>
-              {/* NUOVO LINK RECIPES */}
               <Link
                 href="/recipes"
                 className="text-sm font-medium transition-colors hover:text-primary"
               >
                 Ricette
               </Link>
-              {/* LINK PROFILE CORRETTO */}
               <Link
                 href="/profile"
                 className="text-sm font-medium transition-colors hover:text-primary"
@@ -120,62 +130,81 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Navigation Toggle (Logica invariata) */}
+        {/* Mobile Navigation */}
         <div className="flex items-center gap-2 md:hidden">
           <ModeToggle />
           <SignedIn>
             <UserButton afterSignOutUrl="/" />
           </SignedIn>
-          <SignedIn>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleMenu}
-              aria-label="Toggle Menu"
-            >
-              {isMenuOpen ? (
-                <X className="h-5 w-5" />
-              ) : (
-                <Menu className="h-5 w-5" />
-              )}
-            </Button>
-          </SignedIn>
-          <SignedOut>
-            <SignInButton mode="modal" />
-          </SignedOut>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleMenu}
+            aria-label="Toggle Menu"
+          >
+            {isMenuOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
+          </Button>
         </div>
       </div>
 
-      {/* 2. Mobile Menu - AGGIORNATO */}
+      {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="absolute w-full border-b bg-background px-6 py-4 shadow-md md:hidden">
           <div className="flex flex-col space-y-4">
+            {/* Link pubblici nel menu mobile */}
             <Link
               href="/"
-              className="text-sm font-medium transition-colors hover:text-primary"
+              className="text-sm font-medium"
               onClick={() => setIsMenuOpen(false)}
             >
               Home
             </Link>
+            <Link
+              href="/features"
+              className="text-sm font-medium"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Features
+            </Link>
+            <Link
+              href="/pricing"
+              className="text-sm font-medium"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Pricing
+            </Link>
+            <Link
+              href="/about"
+              className="text-sm font-medium"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              About
+            </Link>
+            <SignedOut>
+              <SignInButton mode="modal" />
+            </SignedOut>
             <SignedIn>
               <Link
                 href="/user-dashboard"
-                className="text-sm font-medium transition-colors hover:text-primary"
+                className="text-sm font-medium"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Mio Piano
               </Link>
-              {/* NUOVO LINK RECIPES */}
               <Link
                 href="/recipes"
-                className="text-sm font-medium transition-colors hover:text-primary"
+                className="text-sm font-medium"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Ricette
               </Link>
               <Link
                 href="/profile"
-                className="text-sm font-medium transition-colors hover:text-primary"
+                className="text-sm font-medium"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Profilo
@@ -183,7 +212,7 @@ export default function Navbar() {
               {isAdmin && (
                 <Link
                   href="/dashboard"
-                  className="text-sm font-medium text-red-500 transition-colors hover:text-red-700"
+                  className="text-sm font-medium text-red-500"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Admin Panel

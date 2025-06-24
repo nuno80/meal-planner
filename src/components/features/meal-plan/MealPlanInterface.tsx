@@ -1,16 +1,15 @@
-// src/components/features/meal-plan/MealPlanInterface.tsx v.1.0
-
-// Componente Client per gestire la generazione e la visualizzazione del piano alimentare.
+// src/components/features/meal-plan/MealPlanInterface.tsx v.1.1
+// Aggiunta la funzionalità di "swap" di un singolo pasto.
 
 "use client";
 
 import { useState } from "react";
 
-// Importiamo il tipo
 import {
   AlertTriangle,
   Loader2,
   Moon,
+  RotateCw,
   Sun,
   Sunrise,
   Utensils,
@@ -20,26 +19,22 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { GeneratedMealPlan } from "@/lib/meal-plan-generator";
 
-// src/components/features/meal-plan/MealPlanInterface.tsx v.1.0
+// src/components/features/meal-plan/MealPlanInterface.tsx v.1.1
+// Aggiunta la funzionalità di "swap" di un singolo pasto.
 
-// Componente Client per gestire la generazione e la visualizzazione del piano alimentare.
-
-// src/components/features/meal-plan/MealPlanInterface.tsx v.1.0
-// src/components/features/MealPlanInterface.tsx
-// Componente Client per gestire la generazione e la visualizzazione del piano alimentare.
-
-// src/components/features/meal-plan/MealPlanInterface.tsx v.1.0
-// Componente Client per gestire la generazione e la visualizzazione del piano alimentare.
-
-// 1. Componente per visualizzare una singola card di un pasto
+// 1. Aggiungiamo 'mealId' e la funzione 'onSwap' alle props di MealCard
 function MealCard({
+  mealId,
   mealType,
   recipeName,
   calories,
+  onSwap,
 }: {
+  mealId: number;
   mealType: string;
   recipeName: string;
   calories: number;
+  onSwap: (mealId: number) => void;
 }) {
   const icons = {
     BREAKFAST: <Sunrise className="text-brand-accent" />,
@@ -61,13 +56,30 @@ function MealCard({
         <h3 className="text-text-primary font-semibold">{recipeName}</h3>
         <p className="text-text-secondary text-xs">~ {calories} kcal</p>
       </div>
+      {/* Aggiungiamo il pulsante di swap che chiama la funzione passata come prop */}
+      <button
+        onClick={() => onSwap(mealId)}
+        className="hover:bg-base-muted rounded-full p-2 transition-colors"
+        title="Sostituisci pasto"
+      >
+        <RotateCw className="text-text-secondary h-4 w-4" />
+      </button>
     </div>
   );
 }
 
-// 2. Componente principale dell'interfaccia
+// Estendiamo il tipo del piano per includere l'ID del pasto
+type MealWithId = GeneratedMealPlan["days"][0]["meals"][0] & { id: number };
+type DayWithMealIds = Omit<GeneratedMealPlan["days"][0], "meals"> & {
+  meals: MealWithId[];
+};
+type PlanWithMealIds = {
+  databaseId?: number;
+  days: DayWithMealIds[];
+};
+
 export function MealPlanInterface() {
-  const [plan, setPlan] = useState<GeneratedMealPlan | null>(null);
+  const [plan, setPlan] = useState<PlanWithMealIds | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -75,22 +87,30 @@ export function MealPlanInterface() {
   const handleGeneratePlan = async () => {
     setIsLoading(true);
     setError(null);
-    setPlan(null); // Resetta il piano precedente
+    setPlan(null);
 
     try {
       const response = await fetch("/api/meal-plan/generate", {
         method: "POST",
       });
-
       const result = await response.json();
+      if (!response.ok)
+        throw new Error(result.message || "Qualcosa è andato storto.");
 
-      if (!response.ok) {
-        throw new Error(
-          result.message || "Qualcosa è andato storto durante la generazione."
-        );
-      }
+      // Simuleremo gli ID dei pasti per ora, in un'app reale arriverebbero dall'API
+      let mealCounter = 1;
+      const planWithIds: PlanWithMealIds = {
+        ...result,
+        days: result.days.map((day: any) => ({
+          ...day,
+          meals: day.meals.map((meal: any) => ({
+            ...meal,
+            id: mealCounter++, // Assegnamo un ID fittizio
+          })),
+        })),
+      };
 
-      setPlan(result);
+      setPlan(planWithIds);
       toast({
         title: "Successo!",
         description: "Il tuo nuovo piano è pronto.",
@@ -108,43 +128,93 @@ export function MealPlanInterface() {
     }
   };
 
+  // 2. NUOVA FUNZIONE per gestire la sostituzione di un pasto
+  const handleSwapMeal = async (mealIdToSwap: number) => {
+    // Simulazione: scegliamo una ricetta a caso con ID 10 per la sostituzione
+    const newRecipeId = 10;
+
+    // Mostriamo un feedback immediato all'utente (opzionale, ma buona UX)
+    toast({ description: "Sto sostituendo il pasto..." });
+
+    try {
+      const response = await fetch(`/api/meal-plan/meal/${mealIdToSwap}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newRecipeId: newRecipeId }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Impossibile sostituire il pasto.");
+      }
+
+      // Se la chiamata API ha successo, aggiorniamo lo stato locale
+      // per riflettere il cambiamento senza ricaricare la pagina.
+      setPlan((currentPlan) => {
+        if (!currentPlan) return null;
+
+        const newPlan = { ...currentPlan };
+        // Troviamo il pasto da aggiornare e lo sostituiamo
+        newPlan.days = newPlan.days.map((day) => ({
+          ...day,
+          meals: day.meals.map((meal) => {
+            if (meal.id === mealIdToSwap) {
+              return {
+                ...meal,
+                recipe: {
+                  id: newRecipeId,
+                  title: "Nuova Ricetta Sostitutiva",
+                  calories: 500,
+                },
+              }; // Dati fittizi
+            }
+            return meal;
+          }),
+        }));
+        return newPlan;
+      });
+
+      toast({
+        title: "Successo!",
+        description: "Pasto sostituito correttamente.",
+      });
+    } catch (err) {
+      toast({
+        title: "Errore",
+        description: (err as Error).message,
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="mx-auto max-w-4xl">
-      {/* 3. Pulsante di generazione */}
       <div className="mb-8 text-center">
         <Button onClick={handleGeneratePlan} disabled={isLoading} size="lg">
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Generazione in corso...
+              Generazione...
             </>
           ) : (
-            "Genera Nuovo Piano Settimanale"
+            "Genera Nuovo Piano"
           )}
         </Button>
       </div>
 
-      {/* 4. Area di visualizzazione dinamica */}
       <div className="space-y-8">
-        {/* Stato di caricamento */}
         {isLoading && (
           <div className="text-text-secondary text-center">
-            <p>Stiamo creando il tuo piano personalizzato...</p>
+            <p>Creazione in corso...</p>
           </div>
         )}
-
-        {/* Stato di errore */}
         {error && (
           <div className="flex items-center gap-4 rounded-lg border border-red-500 bg-red-900/50 p-4 text-red-300">
             <AlertTriangle />
-            <div>
-              <h4 className="font-bold">Impossibile generare il piano</h4>
-              <p className="text-sm">{error}</p>
-            </div>
+            <p>{error}</p>
           </div>
         )}
 
-        {/* Stato di successo: visualizzazione del piano */}
+        {/* 3. Passiamo mealId e onSwap al componente MealCard */}
         {plan && (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {plan.days.map((day) => (
@@ -158,10 +228,12 @@ export function MealPlanInterface() {
                 <div className="space-y-3">
                   {day.meals.map((meal) => (
                     <MealCard
-                      key={meal.recipe.id}
+                      key={meal.id}
+                      mealId={meal.id} // Passiamo l'ID del pasto
                       mealType={meal.mealType}
                       recipeName={meal.recipe.title}
                       calories={meal.recipe.calories}
+                      onSwap={handleSwapMeal} // Passiamo la funzione di callback
                     />
                   ))}
                 </div>
@@ -178,7 +250,6 @@ export function MealPlanInterface() {
           </div>
         )}
 
-        {/* Stato iniziale (nessun piano, nessun errore, non in caricamento) */}
         {!isLoading && !plan && !error && (
           <div className="text-text-secondary border-border-default rounded-lg border-2 border-dashed py-10 text-center">
             <Utensils className="mx-auto mb-4 h-12 w-12" />
