@@ -1,3 +1,4 @@
+
 [
   {
     "id": "SETUP",
@@ -14,52 +15,52 @@
     ]
   },
   {
-    "id": "AUTH_PROFILE",
-    "title": "2. Autenticazione e Profilo Utente",
+    "id": "USER_PREFERENCES",
+    "title": "2. Gestione Preferenze Utente",
+    "description": "Logica per caricare e salvare le preferenze utente, integrata nel flusso di creazione del piano.",
     "status": "completed",
     "subtasks": [
-      { "id": "AUTH_01", "title": "Definire Schema DB Utente/Preferenze", "status": "completed" },
-      { "id": "AUTH_02", "title": "Eseguire la migrazione DB", "status": "completed" },
-      { "id": "AUTH_03", "title": "Implementare Webhook Clerk (Sostituito)", "status": "completed" },
-      { "id": "AUTH_04", "title": "Creare API per le Preferenze Utente", "status": "completed" },
-      { "id": "AUTH_05", "title": "Creare Zod Validator per le Preferenze", "status": "completed" },
-      { "id": "AUTH_06", "title": "Implementare Middleware Semplificato", "status": "completed" },
-      { "id": "AUTH_07", "title": "Sviluppare UI Form Profilo", "status": "completed" },
-      { "id": "AUTH_08", "title": "Collegare Form all'API", "status": "completed" }
+      { "id": "PREF_01", "title": "Definire Schema DB Utente/Preferenze", "status": "completed" },
+      { "id": "PREF_02", "title": "Creare API per le Preferenze (GET/PUT)", "status": "completed" },
+      { "id": "PREF_03", "title": "Creare Zod Validator per le Preferenze", "status": "completed" },
+      { "id": "PREF_04", "title": "Sviluppare UI Form Preferenze", "status": "completed" }
     ]
   },
   {
     "id": "RECIPE_SYSTEM",
-    "title": "3. Sistema di Gestione Ricette (Base)",
+    "title": "3. Sistema di Gestione Ricette",
+    "description": "Integrazione DB ricette, visualizzazione, preferiti e cancellazione.",
     "status": "completed",
     "subtasks": [
       { "id": "RECIPE_01", "title": "Adattare Schema DB per Ricette Esistenti", "status": "completed" },
-      { "id": "RECIPE_02", "title": "Eseguire migrazione DB per le ricette", "status": "completed" },
-      { "id": "RECIPE_03", "title": "Creare script di Seed per importazione", "status": "completed" },
+      { "id": "RECIPE_02", "title": "Creare script di Seed per importazione", "status": "completed" },
+      { "id": "RECIPE_03", "title": "Creare pagina di elenco/ricerca ricette", "status": "completed" },
       { "id": "RECIPE_04", "title": "Creare pagina di visualizzazione ricetta singola", "status": "completed" },
-      { "id": "RECIPE_05", "title": "Creare pagina di elenco/ricerca ricette", "status": "completed" }
+      { "id": "RECIPE_05", "title": "Implementare API per preferiti (toggle)", "status": "completed" },
+      { "id": "RECIPE_06", "title": "Implementare UI per preferiti (cuore)", "status": "completed" },
+      { "id": "RECIPE_07", "title": "Implementare API per cancellazione ricetta (admin)", "status": "completed" },
+      { "id": "RECIPE_08", "title": "Implementare UI per cancellazione ricetta (admin)", "status": "completed" }
     ]
   },
   {
     "id": "MEAL_PLAN_GENERATOR",
-    "title": "4. Generatore Intelligente di Piani Alimentari",
+    "title": "4. Generatore e Gestione Piani Alimentari",
+    "description": "Logica per la generazione, salvataggio e visualizzazione dei piani.",
     "status": "completed",
     "subtasks": [
       { "id": "GEN_01", "title": "Sviluppare il servizio dell'algoritmo", "status": "completed" },
-      { "id": "GEN_02", "title": "Creare API per la generazione", "status": "completed" },
-      { "id": "GEN_03", "title": "Implementare Rate Limiting", "status": "pending" },
-      { "id": "GEN_04", "title": "Sviluppare UI della pagina Piano Alimentare", "status": "completed" }
+      { "id": "GEN_02", "title": "Creare pagina di generazione Server-Side", "details": "Sviluppata la pagina `/meal-plan/generate` che esegue la logica sul server.", "status": "completed" },
+      { "id": "GEN_03", "title": "Creare pagina storico/visualizzazione", "details": "Sviluppata la pagina `/user-dashboard` per mostrare l'ultimo piano.", "status": "completed" },
+      { "id": "GEN_04", "title": "Implementare API per sostituire un pasto", "status": "completed" },
+      { "id": "GEN_05", "title": "Implementare UI per sostituire un pasto", "status": "completed" }
     ]
   },
   {
-    "id": "CUSTOMIZATION_SHOPPING",
-    "title": "5. Customizzazione Piano e Lista della Spesa",
-    "description": "Implementazione delle feature che permettono all'utente di modificare il piano generato e di creare una lista della spesa aggregata.",
-    "status": "in_progress",
+    "id": "SHOPPING_LIST",
+    "title": "5. Lista della Spesa",
+    "description": "Implementazione della feature per generare una lista della spesa aggregata da un piano.",
+    "status": "pending",
     "subtasks": [
-      { "id": "CUST_01", "title": "API per sostituire un pasto", "status": "completed" },
-      { "id": "CUST_02", "title": "UI per la sostituzione del pasto", "status": "completed" },
-      { "id": "CUST_03", "title": "Creare pagina storico piani", "details": "Sviluppare la pagina `/user-dashboard` che mostra l'ultimo piano generato.", "status": "completed" },
       { "id": "SHOP_01", "title": "Sviluppare il servizio di aggregazione ingredienti", "status": "pending" },
       { "id": "SHOP_02", "title": "Creare API per la Lista della Spesa", "status": "pending" },
       { "id": "SHOP_03", "title": "Sviluppare UI Lista della Spesa", "status": "pending" }

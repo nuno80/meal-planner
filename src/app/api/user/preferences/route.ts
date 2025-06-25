@@ -1,5 +1,5 @@
-// src/app/api/user/preferences/route.ts v.2.1 (Tipi Corretti)
-// API Route per leggere (GET) e creare/aggiornare (PUT) le preferenze utente.
+// src/app/api/user/preferences/route.ts v.2.2 (Semplificato)
+// API Route aggiornata senza la logica degli allergeni.
 import { NextRequest, NextResponse } from "next/server";
 
 import { auth, currentUser } from "@clerk/nextjs/server";
@@ -8,20 +8,19 @@ import { ZodError } from "zod";
 import { db } from "@/lib/db";
 import { userPreferencesSchema } from "@/lib/validators/preferences";
 
-// 1. NUOVO TIPO: Definiamo la struttura dei dati come letti dal DB
 type UserPreferencesFromDB = {
   id: number;
   user_id: string;
   calorie_target: number;
-  distribution: string; // È una stringa JSON nel DB
+  distribution: string;
   dietary_preference: "NONE" | "VEGETARIAN" | "VEGAN" | "PESCATARIAN";
-  difficulty_level: "EASY" | "MEDIUM" | "HARD";
-  disliked_ingredients: string; // È una stringa JSON nel DB
+  difficulty_level: "ANY" | "EASY" | "MEDIUM" | "HARD";
+  disliked_ingredients: string;
   created_at: string;
   updated_at: string;
 };
 
-// Funzione GET aggiornata con il tipo corretto
+// Funzione GET aggiornata senza allergeni
 export async function GET() {
   try {
     const { userId } = await auth();
@@ -32,7 +31,6 @@ export async function GET() {
     const userPrefStmt = db.prepare(
       "SELECT * FROM user_preferences WHERE user_id = ?"
     );
-    // 2. MODIFICA: Applichiamo il nostro tipo al risultato della query
     const preferences = userPrefStmt.get(userId) as
       | UserPreferencesFromDB
       | undefined;
@@ -41,20 +39,12 @@ export async function GET() {
       return new NextResponse("Preferences not found", { status: 404 });
     }
 
-    const allergensStmt = db.prepare(`
-      SELECT allergen_id FROM user_preferences_allergens WHERE user_preference_id = ?
-    `);
-    const allergenLinks = allergensStmt.all(preferences.id) as {
-      allergen_id: number;
-    }[];
-    const allergenIds = allergenLinks.map((link) => link.allergen_id);
-
     const responsePayload = {
       calorieTarget: preferences.calorie_target,
       distribution: JSON.parse(preferences.distribution),
       dietaryPreference: preferences.dietary_preference,
       difficultyLevel: preferences.difficulty_level,
-      allergenIds: allergenIds,
+      // MODIFICA: Rimosso 'allergenIds'
       dislikedIngredients: JSON.parse(preferences.disliked_ingredients),
     };
 
@@ -65,7 +55,7 @@ export async function GET() {
   }
 }
 
-// Funzione PUT (invariata)
+// Funzione PUT aggiornata senza allergeni
 export async function PUT(req: NextRequest) {
   try {
     const { userId } = await auth();
@@ -76,12 +66,12 @@ export async function PUT(req: NextRequest) {
 
     const body = await req.json();
     const validatedData = userPreferencesSchema.parse(body);
+    // MODIFICA: Rimosso 'allergenIds' dalla destrutturazione
     const {
       calorieTarget,
       distribution,
       dietaryPreference,
       difficultyLevel,
-      allergenIds,
       dislikedIngredients,
     } = validatedData;
 
@@ -126,16 +116,7 @@ export async function PUT(req: NextRequest) {
         userPreferenceId = Number(result.lastInsertRowid);
       }
 
-      db.prepare(
-        "DELETE FROM user_preferences_allergens WHERE user_preference_id = ?"
-      ).run(userPreferenceId);
-      if (allergenIds.length > 0) {
-        const insertAllergenStmt = db.prepare(
-          "INSERT INTO user_preferences_allergens (user_preference_id, allergen_id) VALUES (?, ?)"
-        );
-        for (const allergenId of allergenIds)
-          insertAllergenStmt.run(userPreferenceId, allergenId);
-      }
+      // MODIFICA: Rimossa tutta la logica di cancellazione e inserimento per 'user_preferences_allergens'
     });
     transaction();
 

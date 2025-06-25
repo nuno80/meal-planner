@@ -1,5 +1,5 @@
--- database/schema.sql v.1.4
--- Aggiunta la tabella per le ricette preferite.
+-- database/schema.sql v.1.5 (Semplificato)
+-- Rimosse le tabelle relative agli allergeni.
 
 CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY NOT NULL,
@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
+-- Tabella preferenze senza allergeni
 CREATE TABLE IF NOT EXISTS user_preferences (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id TEXT UNIQUE NOT NULL,
@@ -19,19 +20,6 @@ CREATE TABLE IF NOT EXISTS user_preferences (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS allergens (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT UNIQUE NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS user_preferences_allergens (
-    user_preference_id INTEGER NOT NULL,
-    allergen_id INTEGER NOT NULL,
-    PRIMARY KEY (user_preference_id, allergen_id),
-    FOREIGN KEY (user_preference_id) REFERENCES user_preferences(id) ON DELETE CASCADE,
-    FOREIGN KEY (allergen_id) REFERENCES allergens(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS recipes (
@@ -53,7 +41,6 @@ CREATE TABLE IF NOT EXISTS recipes (
     meal_types TEXT NOT NULL DEFAULT '[]'
 );
 
--- NUOVA TABELLA PER LE RICETTE PREFERITE --
 CREATE TABLE IF NOT EXISTS user_favorite_recipes (
     user_id TEXT NOT NULL,
     recipe_id INTEGER NOT NULL,
@@ -90,7 +77,7 @@ CREATE TABLE IF NOT EXISTS meal_plan_meals (
     FOREIGN KEY (recipe_id) REFERENCES recipes(id) ON DELETE RESTRICT
 );
 
--- INDICI (aggiunto indice per i preferiti) --
+-- Indici aggiornati
 CREATE INDEX IF NOT EXISTS idx_user_preferences_user_id ON user_preferences(user_id);
 CREATE INDEX IF NOT EXISTS idx_meal_plans_user_id ON meal_plans(user_id);
 CREATE INDEX IF NOT EXISTS idx_recipes_calories ON recipes(calories);

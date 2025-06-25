@@ -1,67 +1,60 @@
+
 {
-  "summary": "Implementate la gestione utenti, preferenze, ricette, generazione di piani, modifica di un singolo pasto e visualizzazione dell'ultimo piano.",
+  "summary": "Implementate gestione utenti, preferenze, ricette (con preferiti e cancellazione admin), e un flusso di generazione piani server-side.",
   "features": {
-    "user_authentication_preferences": {
-      "purpose": "Gestire il profilo utente e le sue preferenze per la generazione dei piani.",
+    "user_and_recipe_interaction": {
+      "purpose": "Permettere agli utenti di interagire con il catalogo delle ricette.",
       "flow": [
-        "1. L'utente si autentica tramite Clerk.",
-        "2. Accede alla pagina `/profile` per impostare o modificare le sue preferenze.",
-        "3. La pagina carica le preferenze esistenti via `GET /api/user/preferences`.",
-        "4. Al salvataggio, il form invia i dati con `PUT` a `/api/user/preferences`.",
-        "5. L'API valida i dati e li salva nel DB (logica UPSERT)."
+        "1. L'utente naviga alla pagina `/recipes`.",
+        "2. La pagina (Server Component) recupera tutte le ricette e la lista dei preferiti dell'utente loggato.",
+        "3. Ogni `RecipeCard` (Client Component) mostra un'icona a forma di cuore, piena se la ricetta è tra i preferiti.",
+        "4. Al click sul cuore, il componente chiama l'API `POST /api/recipes/[recipeId]/favorite` che aggiunge/rimuove il record dal DB e aggiorna l'UI.",
+        "5. Se l'utente è admin, vede un'icona cestino. Al click, viene chiamata l'API `DELETE /api/recipes/[recipeId]` che cancella la ricetta dal DB e la card scompare dall'UI."
       ]
     },
-    "recipe_management": {
-      "purpose": "Integrare e visualizzare il catalogo di ricette esistente.",
+    "meal_plan_creation_flow": {
+      "purpose": "Unificare il processo di impostazione preferenze e generazione del piano.",
       "flow": [
-        "1. Uno script di seeding (`db:seed`) importa le ricette da un DB esterno.",
-        "2. La pagina `/recipes` mostra una galleria di tutte le ricette.",
-        "3. La pagina `/recipes/[recipeId]` mostra i dettagli di una singola ricetta."
+        "1. L'utente naviga a `/meal-plan/create`.",
+        "2. Il `PreferencesForm` carica le ultime preferenze salvate dall'utente tramite `GET /api/user/preferences`.",
+        "3. L'utente modifica le preferenze e clicca 'Genera il Mio Piano'.",
+        "4. Il form salva le preferenze aggiornate con `PUT /api/user/preferences`.",
+        "5. Subito dopo, il form reindirizza l'utente a una nuova URL con le preferenze codificate come parametri, es. `/meal-plan/generate?calorieTarget=2000&...`.",
+        "6. La pagina `/meal-plan/generate` (Server Component) legge i parametri, esegue la logica di generazione e salvataggio del piano direttamente sul server.",
+        "7. La pagina visualizza il piano appena creato."
       ]
     },
-    "meal_plan_generation_and_history": {
-      "purpose": "Generare, salvare e visualizzare i piani alimentari dell'utente.",
+    "meal_plan_history_and_customization": {
+      "purpose": "Visualizzare l'ultimo piano e permettere piccole modifiche.",
       "flow": [
-        "1. L'utente clicca 'Genera Nuovo Piano' sulla pagina `/meal-plan`.",
-        "2. L'API `/api/meal-plan/generate` viene chiamata, esegue l'algoritmo e salva il piano nel DB.",
-        "3. L'utente naviga a `/user-dashboard` (Mio Piano).",
-        "4. La pagina (Server Component) interroga il DB per trovare l'ID dell'ultimo piano creato dall'utente.",
-        "5. Se un piano viene trovato, vengono recuperati tutti i suoi giorni e pasti associati.",
-        "6. I dati vengono passati al componente Client `MealPlanDisplay` per la visualizzazione.",
-        "7. Se nessun piano viene trovato, viene mostrato un invito a generarne uno."
-      ]
-    },
-    "meal_plan_customization": {
-      "purpose": "Permettere all'utente di modificare un piano alimentare generato.",
-      "flow": [
-        "1. Nella visualizzazione del piano, ogni pasto ha un'icona 'sostituisci'.",
-        "2. Al click, il frontend chiama l'API `PATCH /api/meal-plan/meal/[mealId]`.",
-        "3. L'API verifica che l'utente sia il proprietario del piano e aggiorna il `recipe_id` per quel pasto.",
-        "4. Il frontend aggiorna lo stato locale per mostrare la modifica senza ricaricare la pagina."
+        "1. L'utente naviga a `/user-dashboard` (Mio Piano).",
+        "2. La pagina (Server Component) recupera dal DB l'ultimo piano salvato dall'utente.",
+        "3. I dati vengono passati al componente `MealPlanDisplay` per la visualizzazione.",
+        "4. L'utente può cliccare l'icona 'sostituisci' su un pasto, che chiama l'API `PATCH /api/meal-plan/meal/[mealId]` per aggiornare la ricetta nel DB."
       ]
     }
   },
   "api_calls": [
     {
       "endpoint": "GET /api/user/preferences",
-      "description": "Recupera le preferenze salvate per l'utente autenticato.",
-      "security": "Protetto da `clerkMiddleware`."
+      "description": "Recupera le preferenze salvate per l'utente autenticato."
     },
     {
       "endpoint": "PUT /api/user/preferences",
-      "description": "Crea/aggiorna le preferenze dell'utente.",
-      "security": "Protetto da `clerkMiddleware`. Valida il payload con Zod."
+      "description": "Crea/aggiorna le preferenze dell'utente."
     },
     {
-      "endpoint": "POST /api/meal-plan/generate",
-      "description": "Innesca la generazione e il salvataggio di un nuovo piano alimentare.",
-      "security": "Protetto da `clerkMiddleware`."
+      "endpoint": "POST /api/recipes/[recipeId]/favorite",
+      "description": "Aggiunge o rimuove una ricetta dai preferiti dell'utente (logica toggle)."
+    },
+    {
+      "endpoint": "DELETE /api/recipes/[recipeId]",
+      "description": "Cancella una ricetta dal database. Richiede ruolo admin."
     },
     {
       "endpoint": "PATCH /api/meal-plan/meal/[mealId]",
-      "description": "Sostituisce una ricetta specifica all'interno di un piano esistente.",
-      "security": "Protetto da `clerkMiddleware`. Verifica la proprietà del piano."
+      "description": "Sostituisce una ricetta specifica all'interno di un piano esistente."
     }
   ],
-  "architecture_summary": "Architettura basata su Next.js App Router. Clerk per l'autenticazione. Database SQLite gestito con `better-sqlite3`. Le interazioni avvengono tramite API Routes che chiamano servizi di logica di business riutilizzabili."
+  "architecture_summary": "Architettura basata su Next.js App Router. Clerk per l'autenticazione. Database SQLite. Il flusso di generazione del piano è stato spostato server-side per robustezza, leggendo i parametri da URL. Le interazioni utente (preferiti, swap) usano API Routes dedicate."
 }

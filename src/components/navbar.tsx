@@ -1,7 +1,9 @@
-// src/components/navbar.tsx v.1.2 (Correzione Idratazione)
+// src/components/navbar.tsx v.1.4 (Correzione Tipo Rotta)
 
 "use client";
 
+import type { Route } from "next";
+// 1. Importiamo il tipo Route
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -19,46 +21,32 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
 import { useMobile } from "@/hooks/use-mobile";
 
-// src/components/navbar.tsx v.1.2 (Correzione Idratazione)
+// src/components/navbar.tsx v.1.4 (Correzione Tipo Rotta)
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const isMobile = useMobile();
   const { sessionClaims } = useAuth();
   const isAdmin = sessionClaims?.metadata?.role === "admin";
 
-  // --- NUOVO BLOCCO: Soluzione per l'errore di idratazione ---
-  const [isMounted, setIsMounted] = useState(false);
-
   useEffect(() => {
     setIsMounted(true);
   }, []);
-  // --- FINE NUOVO BLOCCO ---
-
   useEffect(() => {
-    if (!isMobile) {
-      setIsMenuOpen(false);
-    }
+    if (!isMobile) setIsMenuOpen(false);
   }, [isMobile]);
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
-  // Se il componente non è ancora "montato" sul client, non renderizziamo nulla
-  // o un placeholder per evitare il mismatch.
-  if (!isMounted) {
-    return null; // O un layout scheletro della navbar
-  }
+  if (!isMounted) return null;
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-16 w-full items-center justify-between px-6 md:px-8">
-        <div className="flex items-center gap-2">
-          <Link href="/" className="flex items-center gap-2 font-bold">
-            <span className="text-xl">Vibe Planner</span>
-          </Link>
-        </div>
+        <Link href="/" className="flex items-center gap-2 font-bold">
+          <span className="text-xl">Vibe Planner</span>
+        </Link>
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex md:items-center md:gap-6">
@@ -70,26 +58,14 @@ export default function Navbar() {
             >
               Home
             </Link>
-            <Link
-              href="/features"
-              className="text-sm font-medium transition-colors hover:text-primary"
-            >
-              Features
-            </Link>
-            <Link
-              href="/pricing"
-              className="text-sm font-medium transition-colors hover:text-primary"
-            >
-              Pricing
-            </Link>
-            <Link
-              href="/about"
-              className="text-sm font-medium transition-colors hover:text-primary"
-            >
-              About
-            </Link>
 
             <SignedIn>
+              <Link
+                href="/meal-plan/create"
+                className="text-sm font-medium transition-colors hover:text-primary"
+              >
+                Crea Piano
+              </Link>
               <Link
                 href="/user-dashboard"
                 className="text-sm font-medium transition-colors hover:text-primary"
@@ -102,8 +78,9 @@ export default function Navbar() {
               >
                 Ricette
               </Link>
+              {/* 2. MODIFICA: Aggiungiamo il type casting */}
               <Link
-                href="/profile"
+                href={"/user-profile" as Route}
                 className="text-sm font-medium transition-colors hover:text-primary"
               >
                 Profilo
@@ -155,7 +132,6 @@ export default function Navbar() {
       {isMenuOpen && (
         <div className="absolute w-full border-b bg-background px-6 py-4 shadow-md md:hidden">
           <div className="flex flex-col space-y-4">
-            {/* Link pubblici nel menu mobile */}
             <Link
               href="/"
               className="text-sm font-medium"
@@ -163,31 +139,17 @@ export default function Navbar() {
             >
               Home
             </Link>
-            <Link
-              href="/features"
-              className="text-sm font-medium"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Features
-            </Link>
-            <Link
-              href="/pricing"
-              className="text-sm font-medium"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Pricing
-            </Link>
-            <Link
-              href="/about"
-              className="text-sm font-medium"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              About
-            </Link>
             <SignedOut>
               <SignInButton mode="modal" />
             </SignedOut>
             <SignedIn>
+              <Link
+                href="/meal-plan/create"
+                className="text-sm font-medium"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Crea Piano
+              </Link>
               <Link
                 href="/user-dashboard"
                 className="text-sm font-medium"
@@ -202,8 +164,9 @@ export default function Navbar() {
               >
                 Ricette
               </Link>
+              {/* 3. MODIFICA: Aggiungiamo il type casting anche qui */}
               <Link
-                href="/profile"
+                href={"/user-profile" as Route}
                 className="text-sm font-medium"
                 onClick={() => setIsMenuOpen(false)}
               >

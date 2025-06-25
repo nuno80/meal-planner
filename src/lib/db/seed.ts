@@ -1,10 +1,8 @@
-// src/lib/db/seed.ts v.1.3 (Corretto)
-// Script aggiornato per popolare utenti, allergeni e ricette con tipi corretti.
+// src/lib/db/seed.ts v.1.4 (Semplificato)
+// Rimosso il popolamento della tabella 'allergens'.
 import Database from "better-sqlite3";
 import path from "path";
 
-// 1. Definiamo un tipo per la ricetta come letta dal DB di origine
-// Questo risolve l'errore 'is of type unknown'.
 type SourceRecipe = {
   id: number;
   Titolo: string;
@@ -32,13 +30,6 @@ const testUsers = [
     email: "test-meal-planner@test.com",
   },
 ];
-const allergensToSeed = [
-  { id: 1, name: "Glutine" },
-  { id: 2, name: "Lattosio" },
-  { id: 3, name: "Frutta a guscio" },
-  { id: 4, name: "Soia" },
-  { id: 5, name: "Arachidi" },
-];
 
 const dbDir = path.resolve(process.cwd(), "database");
 const sourceDbPath = path.join(dbDir, "ricette.db");
@@ -51,7 +42,7 @@ try {
   destDB = new Database(destDbPath);
 
   const seedTransaction = destDB.transaction(() => {
-    // UTENTI
+    // 1. POPOLAMENTO UTENTI DI TEST
     console.log("Pulizia e popolamento della tabella 'users'...");
     destDB!.exec("DELETE FROM users");
     const insertUserStmt = destDB!.prepare(
@@ -60,15 +51,7 @@ try {
     for (const user of testUsers) insertUserStmt.run(user);
     console.log(`Tabella 'users' popolata con ${testUsers.length} utente/i.`);
 
-    // ALLERGENI
-    console.log("Popolamento della tabella 'allergens'...");
-    const insertAllergenStmt = destDB!.prepare(
-      "INSERT OR IGNORE INTO allergens (id, name) VALUES (@id, @name)"
-    );
-    for (const allergen of allergensToSeed) insertAllergenStmt.run(allergen);
-    console.log("Tabella 'allergens' popolata.");
-
-    // RICETTE
+    // 2. POPOLAMENTO RICETTE (Logica allergeni rimossa)
     let sourceDB: Database.Database | null = null;
     try {
       console.log(
@@ -79,7 +62,7 @@ try {
       console.log("Lettura delle ricette...");
       const sourceRecipes = sourceDB
         .prepare("SELECT * FROM ricette")
-        .all() as SourceRecipe[]; // Applichiamo il tipo qui
+        .all() as SourceRecipe[];
       console.log(
         `Trovate ${sourceRecipes.length} ricette. Inizio importazione...`
       );
@@ -132,7 +115,6 @@ try {
 } catch (error) {
   console.error("❌ Errore durante il processo di seeding:", error);
 } finally {
-  // 2. Aggiungiamo un controllo per risolvere l'errore 'is possibly null'
   if (destDB) {
     destDB.close();
     console.log("Connessione al database di destinazione chiusa.");

@@ -1,5 +1,5 @@
-// src/lib/validators/preferences.ts v.1.2
-// Schema aggiornato per includere 'ANY' come livello di difficoltà.
+// src/lib/validators/preferences.ts v.2.0 (Semplificato)
+// Schema di validazione senza la gestione degli allergeni.
 import { z } from "zod";
 
 const distributionSchema = z
@@ -18,6 +18,7 @@ const distributionSchema = z
     }
   );
 
+// Schema principale aggiornato
 export const userPreferencesSchema = z.object({
   calorieTarget: z.coerce
     .number()
@@ -25,9 +26,8 @@ export const userPreferencesSchema = z.object({
     .positive("L'obiettivo calorico deve essere un numero positivo."),
   distribution: distributionSchema,
   dietaryPreference: z.enum(["NONE", "VEGETARIAN", "VEGAN", "PESCATARIAN"]),
-  // MODIFICA: Aggiungiamo 'ANY' alla lista e lo impostiamo come default.
   difficultyLevel: z.enum(["ANY", "EASY", "MEDIUM", "HARD"]),
-  allergenIds: z.array(z.number().int()),
+  // MODIFICA: Rimosso 'allergenIds'
   dislikedIngredients: z.array(z.string()),
 });
 
