@@ -1,5 +1,5 @@
--- database/schema.sql v.1.3
--- Aggiunte colonne di metadati alla tabella meal_plans per lo storico.
+-- database/schema.sql v.1.4
+-- Aggiunta la tabella per le ricette preferite.
 
 CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY NOT NULL,
@@ -53,14 +53,23 @@ CREATE TABLE IF NOT EXISTS recipes (
     meal_types TEXT NOT NULL DEFAULT '[]'
 );
 
+-- NUOVA TABELLA PER LE RICETTE PREFERITE --
+CREATE TABLE IF NOT EXISTS user_favorite_recipes (
+    user_id TEXT NOT NULL,
+    recipe_id INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    PRIMARY KEY (user_id, recipe_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (recipe_id) REFERENCES recipes(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS meal_plans (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    -- NUOVE COLONNE PER LO STORICO --
-    total_calories_avg REAL, -- Media calorica giornaliera del piano
-    dietary_preference_snapshot TEXT, -- Es. 'VEGETARIAN', 'NONE'
-    difficulty_level_snapshot TEXT, -- Es. 'ANY', 'MEDIUM'
+    total_calories_avg REAL,
+    dietary_preference_snapshot TEXT,
+    difficulty_level_snapshot TEXT,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -71,6 +80,7 @@ CREATE TABLE IF NOT EXISTS meal_plan_days (
     UNIQUE(meal_plan_id, day_of_week),
     FOREIGN KEY (meal_plan_id) REFERENCES meal_plans(id) ON DELETE CASCADE
 );
+
 CREATE TABLE IF NOT EXISTS meal_plan_meals (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     meal_plan_day_id INTEGER NOT NULL,
@@ -80,8 +90,10 @@ CREATE TABLE IF NOT EXISTS meal_plan_meals (
     FOREIGN KEY (recipe_id) REFERENCES recipes(id) ON DELETE RESTRICT
 );
 
+-- INDICI (aggiunto indice per i preferiti) --
 CREATE INDEX IF NOT EXISTS idx_user_preferences_user_id ON user_preferences(user_id);
 CREATE INDEX IF NOT EXISTS idx_meal_plans_user_id ON meal_plans(user_id);
 CREATE INDEX IF NOT EXISTS idx_recipes_calories ON recipes(calories);
 CREATE INDEX IF NOT EXISTS idx_recipes_difficulty ON recipes(difficulty);
 CREATE INDEX IF NOT EXISTS idx_recipes_dietary_category ON recipes(dietary_category);
+CREATE INDEX IF NOT EXISTS idx_user_favorite_recipes_user_id ON user_favorite_recipes(user_id);
