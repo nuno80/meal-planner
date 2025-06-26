@@ -1,58 +1,75 @@
 {
-    "src": {
-      "app": {
-        "api": {
-          "webhooks": {
-            "clerk": { "route.ts": "Endpoint per ricevere eventi da Clerk." }
-          },
-          "user": {
-            "preferences": { "route.ts": "API per leggere e scrivere le preferenze utente." }
-          },
-          "meal-plan": {
-            "generate": {
-              "route.ts": "API per innescare la generazione di un nuovo piano alimentare."
-            },
-            "meal": {
-              "[mealId]": {
-                "route.ts": "API per modificare (PATCH) un singolo pasto in un piano."
-              }
+  "last_update": "2024-05-24T12:05:00Z",
+  "src": {
+    "app": {
+      "api": {
+        "recipes": {
+          "[recipeId]": {
+            "route.ts": "API per cancellare (DELETE) una ricetta. Solo admin.",
+            "favorite": {
+              "route.ts": "API per aggiungere/rimuovere (POST) una ricetta dai preferiti."
             }
           }
         },
-        "profile": { "page.tsx": "Pagina per la gestione delle preferenze utente." },
-        "recipes": {
-          "page.tsx": "Pagina galleria che mostra tutte le ricette.",
-          "[recipeId]": {
-            "page.tsx": "Pagina di dettaglio per una singola ricetta."
+        "user": {
+          "preferences": {
+            "route.ts": "API per leggere (GET) e salvare (PUT) le preferenze utente."
           }
-        },
-        "meal-plan": {
-          "page.tsx": "Pagina per avviare la generazione di un nuovo piano."
-        },
-        "user-dashboard": {
-          "page.tsx": "Pagina 'Mio Piano' che carica e visualizza l'ultimo piano generato."
         }
       },
-      "components": {
-        "features": {
-          "profile": { "PreferencesForm.tsx": "Componente Client per il form delle preferenze." },
-          "recipes": { "RecipeCard.tsx": "Componente per la card di una singola ricetta." },
-          "meal-plan": {
-            "MealPlanInterface.tsx": "Componente Client per la pagina di generazione del piano.",
-            "MealPlanDisplay.tsx": "Componente Client per visualizzare un piano esistente e gestirne le modifiche."
-          }
+      "meal-plan": {
+        "create": {
+          "page.tsx": "Pagina che contiene il form per impostare le preferenze e avviare la generazione del piano."
         },
-        "ui": { "NOTE": "Contiene componenti generati da shadcn/ui." }
+        "generate": {
+          "page.tsx": "Pagina Server-Side che riceve le preferenze via URL, genera il piano e lo visualizza."
+        }
       },
-      "lib": {
-        "db": { "seed.ts": "Script di popolamento del database." },
-        "validators": { "preferences.ts": "Schema Zod per la validazione delle preferenze." },
-        "meal-plan-generator.ts": "Servizio contenente l'algoritmo di generazione del piano."
+      "recipes": {
+        "page.tsx": "Pagina galleria che mostra tutte le ricette.",
+        "[recipeId]": {
+          "page.tsx": "Pagina di dettaglio per una singola ricetta."
+        }
       },
-      "types": {
-        "clerk-webhooks.d.ts": "Tipi per i webhook di Clerk.",
-        "globals.d.ts": "Tipi globali e estensioni per Clerk."
+      "shopping-list": {
+        "page.tsx": "Pagina Server-Side che orchestra la generazione della lista della spesa."
       },
-      "middleware.ts": "Gestisce l'autenticazione e la protezione delle rotte."
-    }
+      "user-dashboard": {
+        "page.tsx": "Pagina 'Mio Piano' che carica e visualizza l'ultimo piano generato."
+      },
+      "user-profile": {
+        "[[...user-profile]]": {
+          "page.tsx": "Pagina gestita da Clerk per il profilo utente."
+        }
+      }
+    },
+    "components": {
+      "features": {
+        "profile": {
+          "PreferencesForm.tsx": "Componente Client per il form delle preferenze, riutilizzato nella pagina di creazione piano."
+        },
+        "recipes": {
+          "RecipeCard.tsx": "Componente Client per la card di una ricetta, con logica per preferiti e cancellazione."
+        },
+        "meal-plan": {
+          "MealPlanDisplay.tsx": "Componente Client per visualizzare un piano e gestirne le modifiche (swap)."
+        },
+        "shopping-list": {
+          "ShoppingListConfigurator.tsx": "Componente Client per il form di configurazione della lista spesa.",
+          "ShoppingListDisplay.tsx": "Componente Client per visualizzare la lista spesa con checkbox."
+        }
+      }
+    },
+    "lib": {
+      "db": {
+        "seed.ts": "Script di popolamento del database (utenti, ricette)."
+      },
+      "validators": {
+        "preferences.ts": "Schema Zod per la validazione delle preferenze."
+      },
+      "meal-plan-generator.ts": "Servizio con l'algoritmo di generazione del piano.",
+      "shopping-list-generator.ts": "Servizio con la logica di aggregazione e calcolo per la lista della spesa."
+    },
+    "middleware.ts": "Gestisce l'autenticazione e la protezione delle rotte (versione semplificata)."
   }
+}

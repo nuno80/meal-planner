@@ -1,4 +1,3 @@
-
 [
   {
     "id": "SETUP",
@@ -58,12 +57,12 @@
   {
     "id": "SHOPPING_LIST",
     "title": "5. Lista della Spesa",
-    "description": "Implementazione della feature per generare una lista della spesa aggregata da un piano.",
-    "status": "pending",
+    "description": "Implementazione della feature per generare una lista della spesa aggregata da un piano, con selezione dei pasti e adeguamento delle porzioni.",
+    "status": "completed",
     "subtasks": [
-      { "id": "SHOP_01", "title": "Sviluppare il servizio di aggregazione ingredienti", "status": "pending" },
-      { "id": "SHOP_02", "title": "Creare API per la Lista della Spesa", "status": "pending" },
-      { "id": "SHOP_03", "title": "Sviluppare UI Lista della Spesa", "status": "pending" }
+      { "id": "SHOP_01", "title": "Aggiornare il servizio di aggregazione con calcolo porzioni e arrotondamento", "status": "completed" },
+      { "id": "SHOP_02", "title": "Sviluppare la logica Server-Side nella pagina", "status": "completed" },
+      { "id": "SHOP_03", "title": "Sviluppare l'UI interattiva (Configuratore e Display)", "status": "completed" }
     ]
   }
 ]

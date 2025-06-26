@@ -1,6 +1,7 @@
-
 {
-  "summary": "Implementate gestione utenti, preferenze, ricette (con preferiti e cancellazione admin), e un flusso di generazione piani server-side.",
+  "last_update": "2024-05-24T12:00:00Z",
+  "task_completed": "SHOPPING_LIST - 5. Lista della Spesa",
+  "summary": "Implementate gestione utenti, preferenze, ricette (con preferiti e cancellazione admin), un flusso di generazione piani server-side e una lista della spesa configurabile.",
   "features": {
     "user_and_recipe_interaction": {
       "purpose": "Permettere agli utenti di interagire con il catalogo delle ricette.",
@@ -31,6 +32,32 @@
         "2. La pagina (Server Component) recupera dal DB l'ultimo piano salvato dall'utente.",
         "3. I dati vengono passati al componente `MealPlanDisplay` per la visualizzazione.",
         "4. L'utente può cliccare l'icona 'sostituisci' su un pasto, che chiama l'API `PATCH /api/meal-plan/meal/[mealId]` per aggiornare la ricetta nel DB."
+      ]
+    },
+    "flexible_shopping_list_generator": {
+      "feature_name": "Generatore Lista della Spesa Flessibile",
+      "summary": "Permette agli utenti di generare una lista della spesa aggregata a partire dal loro ultimo piano alimentare. L'utente può personalizzare la lista selezionando giorni o singole ricette, e adeguando il numero di persone per cui fare la spesa.",
+      "architectural_pattern": "Pagina singola basata su React Server Components (RSC) che gestisce la logica di calcolo. L'interfaccia utente è delegata a Componenti Client interattivi. L'aggiornamento della lista avviene tramite ricaricamento della pagina con parametri URL.",
+      "user_flow": [
+        "1. L'utente naviga alla pagina '/shopping-list'.",
+        "2. La pagina Server Component recupera l'ultimo piano alimentare dell'utente.",
+        "3. La pagina calcola una lista della spesa iniziale basata sull'intero piano e la passa come prop ai componenti client.",
+        "4. L'utente interagisce con `ShoppingListConfigurator` per cambiare il numero di persone o deselezionare ricette.",
+        "5. Al click su 'Aggiorna Lista', il componente ricarica la pagina con i nuovi parametri nell'URL.",
+        "6. Il server riesegue la logica con i nuovi parametri e renderizza la lista aggiornata."
+      ],
+      "core_components_interaction": {
+        "src/app/shopping-list/page.tsx": "Pagina Server Component che orchestra il recupero dati, il calcolo e il rendering dei componenti figli.",
+        "src/lib/shopping-list-generator.ts": "Servizio server-side che contiene la logica pura per aggregare ingredienti e scalare le quantità.",
+        "src/components/features/shopping-list/ShoppingListConfigurator.tsx": "Componente Client per il form di configurazione.",
+        "src/components/features/shopping-list/ShoppingListDisplay.tsx": "Componente Client per visualizzare la lista."
+      },
+      "database_interactions": [
+        {
+          "table": "meal_plans, recipes",
+          "operation": "SELECT (Simulato)",
+          "description": "Recupera l'ultimo piano e i dettagli delle ricette per raccogliere gli ingredienti."
+        }
       ]
     }
   },
