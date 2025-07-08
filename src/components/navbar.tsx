@@ -1,10 +1,10 @@
-// src/components/navbar.tsx v.1.4 (Correzione Tipo Rotta)
+// src/components/navbar.tsx v.1.5
+// Navbar aggiornata con selettore di lingua e link localizzati.
 
 "use client";
 
-import type { Route } from "next";
-// 1. Importiamo il tipo Route
-import Link from "next/link";
+// 1. Import aggiornati
+// <-- USARE 'next-intl/link' per il routing localizzato
 import { useEffect, useState } from "react";
 
 import {
@@ -16,12 +16,19 @@ import {
   useAuth,
 } from "@clerk/nextjs";
 import { Menu, X } from "lucide-react";
+import { useTranslations } from "next-intl";
+import Link from "next-intl/link";
 
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
 import { useMobile } from "@/hooks/use-mobile";
 
-// src/components/navbar.tsx v.1.4 (Correzione Tipo Rotta)
+import LanguageSwitcher from "./layout/LanguageSwitcher";
+
+// src/components/navbar.tsx v.1.5
+// Navbar aggiornata con selettore di lingua e link localizzati.
+
+// <-- IMPORTA IL NUOVO COMPONENTE
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -29,6 +36,7 @@ export default function Navbar() {
   const isMobile = useMobile();
   const { sessionClaims } = useAuth();
   const isAdmin = sessionClaims?.metadata?.role === "admin";
+  const t = useTranslations("Navigation"); // <-- Inizializza le traduzioni
 
   useEffect(() => {
     setIsMounted(true);
@@ -51,39 +59,24 @@ export default function Navbar() {
         {/* Desktop Navigation */}
         <div className="hidden md:flex md:items-center md:gap-6">
           <div className="flex items-center gap-4">
-            <ModeToggle />
-            <Link
-              href="/"
-              className="text-sm font-medium transition-colors hover:text-primary"
-            >
-              Home
-            </Link>
-
             <SignedIn>
-              <Link
-                href="/meal-plan/create"
-                className="text-sm font-medium transition-colors hover:text-primary"
-              >
-                Crea Piano
-              </Link>
               <Link
                 href="/user-dashboard"
                 className="text-sm font-medium transition-colors hover:text-primary"
               >
-                Mio Piano
+                {t("mealPlan")}
               </Link>
               <Link
                 href="/recipes"
                 className="text-sm font-medium transition-colors hover:text-primary"
               >
-                Ricette
+                {t("recipes")}
               </Link>
-              {/* 2. MODIFICA: Aggiungiamo il type casting */}
               <Link
-                href={"/user-profile" as Route}
+                href="/shopping-list"
                 className="text-sm font-medium transition-colors hover:text-primary"
               >
-                Profilo
+                {t("shoppingList")}
               </Link>
               {isAdmin && (
                 <Link
@@ -97,6 +90,8 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-4">
+            <ModeToggle />
+            <LanguageSwitcher /> {/* <-- AGGIUNTO QUI */}
             <SignedOut>
               <SignInButton mode="modal" />
               <SignUpButton mode="modal" />
@@ -110,6 +105,7 @@ export default function Navbar() {
         {/* Mobile Navigation */}
         <div className="flex items-center gap-2 md:hidden">
           <ModeToggle />
+          <LanguageSwitcher /> {/* <-- AGGIUNTO ANCHE QUI */}
           <SignedIn>
             <UserButton afterSignOutUrl="/" />
           </SignedIn>
@@ -132,45 +128,30 @@ export default function Navbar() {
       {isMenuOpen && (
         <div className="absolute w-full border-b bg-background px-6 py-4 shadow-md md:hidden">
           <div className="flex flex-col space-y-4">
-            <Link
-              href="/"
-              className="text-sm font-medium"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Home
-            </Link>
             <SignedOut>
               <SignInButton mode="modal" />
             </SignedOut>
             <SignedIn>
               <Link
-                href="/meal-plan/create"
-                className="text-sm font-medium"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Crea Piano
-              </Link>
-              <Link
                 href="/user-dashboard"
                 className="text-sm font-medium"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Mio Piano
+                {t("mealPlan")}
               </Link>
               <Link
                 href="/recipes"
                 className="text-sm font-medium"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Ricette
+                {t("recipes")}
               </Link>
-              {/* 3. MODIFICA: Aggiungiamo il type casting anche qui */}
               <Link
-                href={"/user-profile" as Route}
+                href="/shopping-list"
                 className="text-sm font-medium"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Profilo
+                {t("shoppingList")}
               </Link>
               {isAdmin && (
                 <Link

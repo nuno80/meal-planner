@@ -1,4 +1,4 @@
-// next.config.mjs v.1.1 (Integrato)
+// next.config.mjs v.1.2 (Aggiunto allowedDevOrigins per CodeSandbox)
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -7,7 +7,6 @@ const __dirname = path.dirname(__filename);
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // --- NUOVA SEZIONE PER LE IMMAGINI ---
   images: {
     remotePatterns: [
       {
@@ -18,12 +17,14 @@ const nextConfig = {
       },
     ],
   },
-  // --- FINE NUOVA SEZIONE ---
-
   experimental: {
     typedRoutes: true,
   },
-  allowedDevOrigins: ["*"],
+  // --- MODIFICA PER CODESANDBOX ---
+  // Aggiungiamo l'URL specifico del tuo ambiente di sviluppo CodeSandbox
+  // per permettere le richieste cross-origin necessarie a Clerk.
+  allowedDevOrigins: ["59x3zw-3000.csb.app"],
+  // --- FINE MODIFICA ---
   webpack: (config, { isServer }) => {
     config.resolve.alias = {
       ...config.resolve.alias,

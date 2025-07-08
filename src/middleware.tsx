@@ -1,16 +1,15 @@
-// src/middleware.ts v.1.3
-// Middleware corretto che combina i18n e Clerk.
+// src/middleware.ts v.1.7 (Prioritize root redirect)
+// Dà priorità al redirect della lingua per la rotta di root.
 import { NextRequest, NextResponse } from "next/server";
 
-import { getAuth } from "@clerk/nextjs/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import createIntlMiddleware from "next-intl/middleware";
 
 import { defaultLocale, locales } from "./i18n";
 
-// 1. Definizione delle rotte (invariata, ma ora funzionerà correttamente)
-// createRouteMatcher non è più necessario perché gestiamo la logica manualmente.
-const publicRoutes = [
-  "/",
+// 1. Definizione delle rotte (rimuoviamo '/' dalla lista pubblica)
+const isPublicRoute = createRouteMatcher([
+  // '/' è rimosso da qui per essere gestito separatamente
   "/:locale(it|en)",
   "/:locale(it|en)/sign-in(.*)",
   "/:locale(it|en)/sign-up(.*)",
@@ -20,69 +19,45 @@ const publicRoutes = [
   "/:locale(it|en)/no-access",
   "/api/webhooks(.*)",
   "/api/user/preferences",
-];
+]);
 
-const adminRoutes = [
+const isAdminRoute = createRouteMatcher([
   "/:locale(it|en)/admin(.*)",
   "/:locale(it|en)/dashboard(.*)",
   "/api/admin/(.*)",
-];
+]);
 
-// Funzione helper per matchare le rotte, sostituisce createRouteMatcher
-const matches = (path: string, patterns: string[]) =>
-  patterns.some((p) => new RegExp(`^${p.replace("*", ".*")}$`).test(path));
-
-// 2. Creazione del middleware di internazionalizzazione (invariato)
+// 2. Creazione del middleware di next-intl (invariata)
 const intlMiddleware = createIntlMiddleware({
   locales: locales,
   defaultLocale: defaultLocale,
   localePrefix: "always",
 });
 
-// 3. Middleware combinato
-export default async function middleware(req: NextRequest) {
-  // Eseguiamo prima il middleware di next-intl.
-  const i18nResponse = intlMiddleware(req);
+// 3. Esportazione del middleware di Clerk
+export default clerkMiddleware(async (auth, req: NextRequest) => {
   const pathname = req.nextUrl.pathname;
 
-  // Se la rotta è pubblica, procediamo.
-  if (matches(pathname, publicRoutes)) {
-    return i18nResponse;
+  // CORREZIONE: Se la richiesta è per la root, lascia che intlMiddleware faccia il redirect.
+  if (pathname === "/") {
+    return intlMiddleware(req);
   }
 
-  const auth = getAuth(req);
-  const { userId, sessionClaims } = auth;
+  const intlResponse = intlMiddleware(req);
 
-  // Se l'utente non è autenticato per una rotta protetta...
+  if (isPublicRoute(req)) {
+    return intlResponse;
+  }
+
+  const { userId, sessionClaims, redirectToSignIn } = await auth();
+
   if (!userId) {
-    if (pathname.startsWith("/api")) {
-      return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-      });
-    }
-
-    // CORREZIONE: Estraiamo la lingua dall'URL, non dall'oggetto auth.
-    const detectedLocale =
-      locales.find((l) => pathname.startsWith(`/${l}`)) || defaultLocale;
-    const signInUrl = new URL(`/${detectedLocale}/sign-in`, req.url);
-    signInUrl.searchParams.set("redirect_url", req.nextUrl.href);
-    return NextResponse.redirect(signInUrl);
+    return redirectToSignIn({ returnBackUrl: req.url });
   }
 
-  // Se la rotta richiede privilegi di admin...
-  if (matches(pathname, adminRoutes)) {
+  if (isAdminRoute(req)) {
     const userIsAdmin = sessionClaims?.metadata?.role === "admin";
-
-    if (userIsAdmin) {
-      return i18nResponse; // L'utente è admin, procedi.
-    } else {
-      if (pathname.startsWith("/api")) {
-        return new NextResponse(
-          JSON.stringify({ error: "Forbidden: Admin role required" }),
-          { status: 403 }
-        );
-      }
-      // CORREZIONE: Estraiamo la lingua dall'URL anche qui.
+    if (!userIsAdmin) {
       const detectedLocale =
         locales.find((l) => pathname.startsWith(`/${l}`)) || defaultLocale;
       const noAccessUrl = new URL(`/${detectedLocale}/no-access`, req.url);
@@ -90,9 +65,8 @@ export default async function middleware(req: NextRequest) {
     }
   }
 
-  // Se l'utente è loggato e la rotta non è admin, ha il permesso.
-  return i18nResponse;
-}
+  return intlResponse;
+});
 
 // 4. Configurazione del matcher (invariata)
 export const config = {
