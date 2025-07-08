@@ -1,0 +1,28 @@
+{
+    "Navigation": {
+      "mealPlan": "My Plan",
+      "recipes": "Recipes",
+      "shoppingList": "Shopping List"
+    },
+    "ShoppingListPage": {
+      "title": "Your Shopping List",
+      "configuratorTitle": "Configure your shopping",
+      "peopleLabel": "Number of people",
+      "selectMealsLabel": "Select meals to include",
+      "updateButton": "Update List",
+      "listTitle": "Shopping List",
+      "listDescription": "Check off the ingredients you already have or have purchased.",
+      "emptyState": "No recipes selected. Select meals and update the list to see the ingredients.",
+      "loadingConfigurator": "Loading configurator...",
+      "loadingList": "Generating list..."
+    },
+    "Days": {
+      "Lunedì": "Monday",
+      "Martedì": "Tuesday",
+      "Mercoledì": "Wednesday",
+      "Giovedì": "Thursday",
+      "Venerdì": "Friday",
+      "Sabato": "Saturday",
+      "Domenica": "Sunday"
+    }
+  }

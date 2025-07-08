@@ -1,0 +1,28 @@
+{
+    "Navigation": {
+      "mealPlan": "Mio Piano",
+      "recipes": "Ricette",
+      "shoppingList": "Lista Spesa"
+    },
+    "ShoppingListPage": {
+      "title": "La Tua Lista della Spesa",
+      "configuratorTitle": "Configura la tua spesa",
+      "peopleLabel": "Numero di persone",
+      "selectMealsLabel": "Seleziona i pasti da includere",
+      "updateButton": "Aggiorna Lista",
+      "listTitle": "Lista della Spesa",
+      "listDescription": "Spunta gli ingredienti che hai già o che hai acquistato.",
+      "emptyState": "Nessuna ricetta selezionata. Seleziona i pasti e aggiorna la lista per vedere gli ingredienti.",
+      "loadingConfigurator": "Caricamento configuratore...",
+      "loadingList": "Generazione lista in corso..."
+    },
+    "Days": {
+      "Lunedì": "Lunedì",
+      "Martedì": "Martedì",
+      "Mercoledì": "Mercoledì",
+      "Giovedì": "Giovedì",
+      "Venerdì": "Venerdì",
+      "Sabato": "Sabato",
+      "Domenica": "Domenica"
+    }
+  }

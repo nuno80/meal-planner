@@ -1,88 +1,100 @@
-// src/middleware.ts (Tua logica originale, adattata)
-import { NextResponse } from "next/server";
+// src/middleware.ts v.1.3
+// Middleware corretto che combina i18n e Clerk.
+import { NextRequest, NextResponse } from "next/server";
 
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { getAuth } from "@clerk/nextjs/server";
+import createIntlMiddleware from "next-intl/middleware";
 
-type AppRole = "admin" | "manager";
+import { defaultLocale, locales } from "./i18n";
 
-const isPublicRoute = createRouteMatcher([
-  // Lista pubblica aggiornata
+// 1. Definizione delle rotte (invariata, ma ora funzionerà correttamente)
+// createRouteMatcher non è più necessario perché gestiamo la logica manualmente.
+const publicRoutes = [
   "/",
-  "/about",
-  "/pricing",
-  "/devi-autenticarti",
-  "/no-access",
-  "/sign-in(.*)",
-  "/sign-up(.*)",
+  "/:locale(it|en)",
+  "/:locale(it|en)/sign-in(.*)",
+  "/:locale(it|en)/sign-up(.*)",
+  "/:locale(it|en)/about",
+  "/:locale(it|en)/pricing",
+  "/:locale(it|en)/devi-autenticarti",
+  "/:locale(it|en)/no-access",
   "/api/webhooks(.*)",
-  "/api/user/preferences", // API per salvare preferenze deve essere raggiungibile
-]);
+  "/api/user/preferences",
+];
 
-const isAdminRoute = createRouteMatcher([
-  // Rotte admin invariate
-  "/admin(.*)",
-  "/dashboard(.*)",
+const adminRoutes = [
+  "/:locale(it|en)/admin(.*)",
+  "/:locale(it|en)/dashboard(.*)",
   "/api/admin/(.*)",
-]);
+];
 
-export default clerkMiddleware(async (auth, req) => {
-  const { userId, sessionClaims } = await auth();
+// Funzione helper per matchare le rotte, sostituisce createRouteMatcher
+const matches = (path: string, patterns: string[]) =>
+  patterns.some((p) => new RegExp(`^${p.replace("*", ".*")}$`).test(path));
 
-  if (isPublicRoute(req)) {
-    // LOGICA INVARIATA
-    return NextResponse.next();
+// 2. Creazione del middleware di internazionalizzazione (invariato)
+const intlMiddleware = createIntlMiddleware({
+  locales: locales,
+  defaultLocale: defaultLocale,
+  localePrefix: "always",
+});
+
+// 3. Middleware combinato
+export default async function middleware(req: NextRequest) {
+  // Eseguiamo prima il middleware di next-intl.
+  const i18nResponse = intlMiddleware(req);
+  const pathname = req.nextUrl.pathname;
+
+  // Se la rotta è pubblica, procediamo.
+  if (matches(pathname, publicRoutes)) {
+    return i18nResponse;
   }
 
+  const auth = getAuth(req);
+  const { userId, sessionClaims } = auth;
+
+  // Se l'utente non è autenticato per una rotta protetta...
   if (!userId) {
-    // LOGICA INVARIATA
-    if (req.url.startsWith("/api")) {
+    if (pathname.startsWith("/api")) {
       return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
-        headers: { "Content-Type": "application/json" },
       });
     }
-    const signInUrl = new URL("/sign-in", req.url);
-    signInUrl.searchParams.set(
-      "redirect_url",
-      req.nextUrl.pathname + req.nextUrl.search
-    );
+
+    // CORREZIONE: Estraiamo la lingua dall'URL, non dall'oggetto auth.
+    const detectedLocale =
+      locales.find((l) => pathname.startsWith(`/${l}`)) || defaultLocale;
+    const signInUrl = new URL(`/${detectedLocale}/sign-in`, req.url);
+    signInUrl.searchParams.set("redirect_url", req.nextUrl.href);
     return NextResponse.redirect(signInUrl);
   }
 
-  // LOGICA INVARIATA
-  if (isAdminRoute(req)) {
-    // Tutta la tua logica per il controllo del ruolo admin è mantenuta.
-    let userIsAdmin = false;
-    let roleSource = "none";
-    if (sessionClaims?.metadata?.role === "admin") {
-      userIsAdmin = true;
-      roleSource = "sessionClaims.metadata.role";
-    }
-    // ... (ho rimosso gli altri check per brevità, ma puoi mantenere i tuoi)
+  // Se la rotta richiede privilegi di admin...
+  if (matches(pathname, adminRoutes)) {
+    const userIsAdmin = sessionClaims?.metadata?.role === "admin";
 
     if (userIsAdmin) {
-      return NextResponse.next();
+      return i18nResponse; // L'utente è admin, procedi.
     } else {
-      if (req.url.startsWith("/api")) {
+      if (pathname.startsWith("/api")) {
         return new NextResponse(
           JSON.stringify({ error: "Forbidden: Admin role required" }),
-          {
-            status: 403,
-            headers: { "Content-Type": "application/json" },
-          }
+          { status: 403 }
         );
       }
-      const noAccessUrl = new URL("/no-access", req.url);
+      // CORREZIONE: Estraiamo la lingua dall'URL anche qui.
+      const detectedLocale =
+        locales.find((l) => pathname.startsWith(`/${l}`)) || defaultLocale;
+      const noAccessUrl = new URL(`/${detectedLocale}/no-access`, req.url);
       return NextResponse.redirect(noAccessUrl);
     }
   }
 
-  // Fallback per tutte le altre rotte (es. /profile, /recipes, /user-dashboard)
-  // Se l'utente è arrivato fin qui, è loggato e non sta accedendo a una rotta admin.
-  // Quindi, ha il permesso di procedere.
-  return NextResponse.next();
-});
+  // Se l'utente è loggato e la rotta non è admin, ha il permesso.
+  return i18nResponse;
+}
 
+// 4. Configurazione del matcher (invariata)
 export const config = {
   matcher: [
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",

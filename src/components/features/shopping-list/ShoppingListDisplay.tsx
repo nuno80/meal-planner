@@ -1,33 +1,27 @@
-// src/components/features/shopping-list/ShoppingListDisplay.tsx v.1.0
-// Componente client per visualizzare la lista della spesa con checkbox interattive.
+// src/components/features/shopping-list/ShoppingListDisplay.tsx v.1.1
+// Componente client per visualizzare la lista, ora con testo tradotto.
 
-"use client";
+'use client';
 
-// 1. Import necessari
-import { useState } from "react";
+// 1. Import necessari (aggiunto useTranslations)
+import { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { ShoppingListItem } from '@/lib/shopping-list-generator';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { ShoppingListItem } from "@/lib/shopping-listgenerator";
-
-// src/components/features/shopping-list/ShoppingListDisplay.tsx v.1.0
-// Componente client per visualizzare la lista della spesa con checkbox interattive.
-
-// 2. Definizione Props
+// 2. Definizione Props (invariata)
 interface ShoppingListDisplayProps {
   items: ShoppingListItem[];
 }
 
 // 3. Componente Principale
 export function ShoppingListDisplay({ items }: ShoppingListDisplayProps) {
-  // Stato per tenere traccia degli ingredienti spuntati (acquistati/posseduti)
+  // Inizializza la funzione di traduzione
+  const t = useTranslations('ShoppingListPage');
+  
+  // Stato per le checkbox (invariato)
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
 
   const handleToggleItem = (itemName: string) => {
@@ -40,40 +34,33 @@ export function ShoppingListDisplay({ items }: ShoppingListDisplayProps) {
     setCheckedItems(newCheckedItems);
   };
 
+  // 4. Rendering dello Stato Vuoto con testo tradotto
   if (items.length === 0) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Lista Generata</CardTitle>
+          <CardTitle>{t('listTitle')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p>
-            Nessuna ricetta selezionata. Seleziona i pasti e aggiorna la lista
-            per vedere gli ingredienti.
-          </p>
+          <p>{t('emptyState')}</p>
         </CardContent>
       </Card>
     );
   }
 
-  // 4. Rendering della Lista
+  // 5. Rendering della Lista con testo tradotto
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Lista della Spesa</CardTitle>
-        <CardDescription>
-          Spunta gli ingredienti che hai già o che hai acquistato.
-        </CardDescription>
+        <CardTitle>{t('listTitle')}</CardTitle>
+        <CardDescription>{t('listDescription')}</CardDescription>
       </CardHeader>
       <CardContent>
         <ul className="space-y-3">
           {items.map((item) => {
             const isChecked = checkedItems.has(item.name);
             return (
-              <li
-                key={item.name}
-                className="flex items-center space-x-3 rounded-md p-2 transition-colors hover:bg-gray-50"
-              >
+              <li key={item.name} className="flex items-center space-x-3 p-2 rounded-md transition-colors hover:bg-gray-50">
                 <Checkbox
                   id={`item-${item.name}`}
                   checked={isChecked}
@@ -81,13 +68,11 @@ export function ShoppingListDisplay({ items }: ShoppingListDisplayProps) {
                 />
                 <Label
                   htmlFor={`item-${item.name}`}
-                  className={`flex-grow cursor-pointer ${isChecked ? "text-gray-400 line-through" : ""}`}
+                  className={`flex-grow cursor-pointer ${isChecked ? 'text-gray-400 line-through' : ''}`}
                 >
                   <span className="font-medium">{item.name}</span>
                 </Label>
-                <span
-                  className={`text-sm ${isChecked ? "text-gray-400 line-through" : "text-gray-600"}`}
-                >
+                <span className={`text-sm ${isChecked ? 'text-gray-400 line-through' : 'text-gray-600'}`}>
                   {item.quantity} {item.unit}
                 </span>
               </li>
